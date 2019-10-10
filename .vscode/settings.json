@@ -1,0 +1,10 @@
+{
+    "python.pythonPath": "${workspaceFolder}/code/venv/Scripts/python.exe",
+    "python.jediEnabled": false,
+    "editor.formatOnSave": true,
+    "python.formatting.autopep8Args": [
+        "\"--max-line-length\"",
+        "\"100\"",
+        "\"--experimental\""
+    ]
+}
