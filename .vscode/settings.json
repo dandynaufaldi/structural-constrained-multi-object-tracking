@@ -6,5 +6,10 @@
         "\"--max-line-length\"",
         "\"100\"",
         "\"--experimental\""
+    ],
+    "python.formatting.provider": "yapf",
+    "python.formatting.yapfArgs": [
+        "--style",
+        "{based_on_style: chromium, indent_width: 4, column_limit: 100}"
     ]
 }
