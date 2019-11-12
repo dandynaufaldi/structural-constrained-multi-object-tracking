@@ -1,6 +1,6 @@
 {
     "python.pythonPath": "${workspaceFolder}/code/venv/Scripts/python.exe",
-    "python.jediEnabled": false,
+    "python.jediEnabled": true,
     "editor.formatOnSave": true,
     "python.formatting.autopep8Args": [
         "\"--max-line-length\"",
@@ -11,5 +11,7 @@
     "python.formatting.yapfArgs": [
         "--style",
         "{based_on_style: chromium, indent_width: 4, column_limit: 100}"
-    ]
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
