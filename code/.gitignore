@@ -1,6 +1,7 @@
 dataset/**/*.jpg
 dataset/**/*.txt
 dataset/**/*.zip
+dataset/**/*.csv
 venv/
 env/
 /**/__pycache__/

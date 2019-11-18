@@ -13,5 +13,6 @@
         "{based_on_style: chromium, indent_width: 4, column_limit: 100}"
     ],
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "autoDocstring.docstringFormat": "google"
 }
