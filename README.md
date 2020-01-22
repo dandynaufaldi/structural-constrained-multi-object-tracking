@@ -2,7 +2,9 @@
 
 ## Project Structure
 
-## Setup
+## Development Env Setup
+- Use python 3.6
+- Run `pip install requirements-dev.txt`
 
 ## References
 1. Yoon, J.H., Lee, C., Yang, M., & Yoon, K. (2018). Structural Constraint Data Association for Online Multi-object Tracking. *International Journal of Computer Vision*, 127, 1-21.

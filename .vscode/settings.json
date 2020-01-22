@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "${workspaceFolder}/code/venv/Scripts/python.exe",
+    "python.pythonPath": "${workspaceFolder}/venv/Scripts/python.exe",
     "python.jediEnabled": true,
     "editor.formatOnSave": true,
     "python.formatting.autopep8Args": [
