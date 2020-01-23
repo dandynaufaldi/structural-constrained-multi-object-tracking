@@ -1,5 +1,6 @@
 import unittest
 
+import numpy as np
 from state import DetectionState, ObjectState
 
 
@@ -40,6 +41,42 @@ class TestDetectionState(unittest.TestCase):
         self.assertEqual(state.width, width)
         self.assertEqual(state.frame_step, frame_step)
         self.assertIs(state.histogram, None)
+
+    def test_instantiate_from_bbox(self):
+        left = 5
+        top = 0
+        width = 30
+        height = 40
+        frame_step = 0
+        full_image = np.empty((10, 10, 3))
+        state = DetectionState.from_bbox(
+            left=left,
+            top=top,
+            width=width,
+            height=height,
+            frame_step=frame_step,
+            full_image=full_image)
+
+        self.assertIsInstance(state, DetectionState)
+        self.assertEqual(state.x, 20)
+        self.assertEqual(state.y, 20)
+        self.assertIsInstance(state.histogram, np.ndarray)
+
+    def test_instantiate_from_bbox_non_rgb(self):
+        left = 5
+        top = 0
+        width = 30
+        height = 40
+        frame_step = 0
+        full_image = np.empty((10, 10))
+        with self.assertRaises(AssertionError):
+            state = DetectionState.from_bbox(
+                left=left,
+                top=top,
+                width=width,
+                height=height,
+                frame_step=frame_step,
+                full_image=full_image)
 
 
 class TestObjectState(unittest.TestCase):

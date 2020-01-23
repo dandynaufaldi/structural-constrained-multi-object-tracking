@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 
@@ -12,6 +12,26 @@ class DetectionState:
     height: float
     frame_step: int
     histogram: Optional[np.ndarray] = None
+
+    @staticmethod
+    def from_bbox(left: int,
+                  top: int,
+                  width: int,
+                  height: int,
+                  frame_step: int,
+                  full_image: Optional[np.ndarray] = None,
+                  bins: Optional[Union[list, np.ndarray]] = np.arange(9) * 32) -> 'DetectionState':
+        x = left + width / 2
+        y = top + height / 2
+        histogram = None
+        if full_image is not None:
+            # RGB or BGR image
+            assert len(full_image.shape) == 3
+            image = full_image[top:top + height, left:left + width]
+            graysacle = image.mean(axis=2)
+            histogram, _ = np.histogram(graysacle, bins=bins)
+        return DetectionState(
+            x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=histogram)
 
 
 @dataclass
