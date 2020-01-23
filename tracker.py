@@ -1,12 +1,12 @@
 import numpy as np
 from filterpy.kalman import KalmanFilter
 
-DEV_Q = 15**2
-DEV_X = 3**2
-DEV_Y = 3**2
-DEV_S = 15**2
-DEV_W = 15**2
-DEV_H = 15**2
+DEV_Q = 15 ** 2
+DEV_X = 3 ** 2
+DEV_Y = 3 ** 2
+DEV_S = 15 ** 2
+DEV_W = 15 ** 2
+DEV_H = 15 ** 2
 
 
 def convert_bbox_to_z(bbox: np.ndarray):
@@ -17,8 +17,8 @@ def convert_bbox_to_z(bbox: np.ndarray):
     """
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
-    x = bbox[0] + w / 2.
-    y = bbox[1] + h / 2.
+    x = bbox[0] + w / 2.0
+    y = bbox[1] + h / 2.0
     s = w * h  # scale is just area
     r = w / float(h)
     return np.array([x, y, s, r]).reshape((4, 1))
@@ -31,12 +31,14 @@ def convert_x_to_bbox(x: np.ndarray, score: float = None):
     """
     w = np.sqrt(x[2] * x[3])
     h = x[2] / w
-    if (score == None):
-        return np.array([x[0] - w / 2., x[1] - h / 2., x[0] + w / 2., x[1] + h / 2.]).reshape(
-            (1, 4))
+    if score is None:
+        return np.array([x[0] - w / 2.0, x[1] - h / 2.0, x[0] + w / 2.0, x[1] + h / 2.0]).reshape(
+            (1, 4)
+        )
     else:
-        return np.array([x[0] - w / 2., x[1] - h / 2., x[0] + w / 2., x[1] + h / 2.,
-                         score]).reshape((1, 5))
+        return np.array(
+            [x[0] - w / 2.0, x[1] - h / 2.0, x[0] + w / 2.0, x[1] + h / 2.0, score]
+        ).reshape((1, 5))
 
 
 def diagonal_matrix(value: np.ndarray) -> np.ndarray:
@@ -66,13 +68,28 @@ class Tracker:
         self.state = state
         self.hist = hist
 
-        self.kf.F = np.array([[1, 0, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0],
-                              [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]])
+        self.kf.F = np.array(
+            [
+                [1, 0, 1, 0, 0, 0],
+                [0, 1, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1],
+            ]
+        )
         quart_q = 0.25 * DEV_Q
         half_q = 0.5 * DEV_Q
-        self.kf.Q = np.array([[quart_q, half_q, 0, 0, 0, 0], [quart_q, half_q, 0, 0, 0, 0],
-                              [0, 0, half_q, DEV_Q, 0, 0], [0, 0, half_q, DEV_Q, 0, 0],
-                              [0, 0, 0, 0, DEV_S, 0], [0, 0, 0, 0, 0, DEV_S]])
+        self.kf.Q = np.array(
+            [
+                [quart_q, half_q, 0, 0, 0, 0],
+                [quart_q, half_q, 0, 0, 0, 0],
+                [0, 0, half_q, DEV_Q, 0, 0],
+                [0, 0, half_q, DEV_Q, 0, 0],
+                [0, 0, 0, 0, DEV_S, 0],
+                [0, 0, 0, 0, 0, DEV_S],
+            ]
+        )
         H = np.zeros((dim_z, dim_x))
         H[:2, :2] = np.eye(2)
         H[:2, 4:] = np.eye(2)

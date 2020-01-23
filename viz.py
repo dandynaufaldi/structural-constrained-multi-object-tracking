@@ -1,9 +1,8 @@
 import os
-import time
+
+import pandas as pd
 
 import cv2
-import numpy as np
-import pandas as pd
 
 dataset_dir = os.path.join("dataset", "2DMOT2015", "train")
 scenes = os.listdir(dataset_dir)
@@ -57,8 +56,8 @@ for scene in scenes:
 
                 # object state
                 # [x_mid, y_mid, speed_x, speed_y, width, height, frame_seq]
-                x_mid = left  #+ width // 2
-                y_mid = top  #+ height // 2
+                x_mid = left  # + width // 2
+                y_mid = top  # + height // 2
                 if obj_id not in obj_states:
                     obj_states[obj_id] = [x_mid, y_mid, 0, 0, width, height, i]
                 else:
@@ -68,7 +67,15 @@ for scene in scenes:
                     interval = i - old_time
                     speed_x = (x_mid - old_x_mid) / interval
                     speed_y = (y_mid - old_y_mid) / interval
-                    obj_states[obj_id] = [x_mid, y_mid, speed_x, speed_y, width, height, i]
+                    obj_states[obj_id] = [
+                        x_mid,
+                        y_mid,
+                        speed_x,
+                        speed_y,
+                        width,
+                        height,
+                        i,
+                    ]
                 print(obj_id, obj_states[obj_id])
 
         print("=" * 30)

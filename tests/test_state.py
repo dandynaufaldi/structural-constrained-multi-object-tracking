@@ -26,14 +26,15 @@ def factory_detection() -> DetectionState:
 
 
 class TestDetectionState(unittest.TestCase):
-
     def test_instantiate(self):
         x = 20
         y = 20
         width = 30
         height = 40
         frame_step = 0
-        state = DetectionState(x=x, y=y, width=width, height=height, frame_step=frame_step)
+        state = DetectionState(
+            x=x, y=y, width=width, height=height, frame_step=frame_step
+        )
 
         self.assertIsInstance(state, DetectionState)
         self.assertEqual(state.x, x)
@@ -56,7 +57,8 @@ class TestDetectionState(unittest.TestCase):
             width=width,
             height=height,
             frame_step=frame_step,
-            full_image=full_image)
+            full_image=full_image,
+        )
 
         self.assertIsInstance(state, DetectionState)
         self.assertEqual(state.x, 20)
@@ -77,11 +79,11 @@ class TestDetectionState(unittest.TestCase):
                 width=width,
                 height=height,
                 frame_step=frame_step,
-                full_image=full_image)
+                full_image=full_image,
+            )
 
 
 class TestObjectState(unittest.TestCase):
-
     def test_instantiate(self):
         x = 20
         y = 20
@@ -132,7 +134,6 @@ class TestObjectState(unittest.TestCase):
 
 
 class TestStructuralConstraint(unittest.TestCase):
-
     def test_instantiate(self):
         delta_x = 1.5
         delta_y = 2.0
@@ -140,5 +141,6 @@ class TestStructuralConstraint(unittest.TestCase):
         delta_v_y = 0.67
 
         sc = StructuralConstraint(
-            delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y)
+            delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y
+        )
         self.assertIsInstance(sc, StructuralConstraint)
