@@ -15,7 +15,8 @@ def calculate_structural_constraint(
         object_states (List[ObjectState]): array of object states
     
     Returns:
-        Dict[int, Dict[int, StructuralConstraint]]: hashtable constains structural constraint for every pair
+        Dict[int, Dict[int, StructuralConstraint]]:
+            hashtable constains structural constraint for every pair
     """
     structural_constraints = {}
     for i, first_object in enumerate(object_states[:-1]):

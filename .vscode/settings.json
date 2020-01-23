@@ -12,7 +12,13 @@
         "--style",
         "{based_on_style: chromium, indent_width: 4, column_limit: 100}"
     ],
-    "python.linting.pylintEnabled": true,
+    "python.linting.pylintEnabled": false,
     "python.linting.enabled": true,
-    "autoDocstring.docstringFormat": "google"
+    "autoDocstring.docstringFormat": "google",
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--max-complexity=10",
+        "--max-line-length=100",
+        "--ignore=W293,W504"
+    ]
 }
