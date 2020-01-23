@@ -58,3 +58,11 @@ class ObjectState:
         self.width = detection.width
         self.height = detection.height
         self.frame_step = detection.frame_step
+
+
+@dataclass
+class StructuralConstraint:
+    delta_x: float
+    delta_y: float
+    delta_v_x: float
+    delta_v_y: float

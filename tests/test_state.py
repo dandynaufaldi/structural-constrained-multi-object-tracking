@@ -1,7 +1,8 @@
 import unittest
 
 import numpy as np
-from state import DetectionState, ObjectState
+
+from state import DetectionState, ObjectState, StructuralConstraint
 
 
 def factory_object() -> ObjectState:
@@ -97,7 +98,7 @@ class TestObjectState(unittest.TestCase):
         self.assertEqual(state.frame_step, frame_step)
         self.assertEqual(state.v_x, 0.0)
         self.assertEqual(state.v_y, 0.0)
-        self.assertIs(state.histogram, None)
+        self.assertIsNone(state.histogram)
 
     def test_from_detection(self):
         detection_state = factory_detection()
@@ -111,7 +112,7 @@ class TestObjectState(unittest.TestCase):
         self.assertEqual(object_state.frame_step, detection_state.frame_step)
         self.assertEqual(object_state.v_x, 0.0)
         self.assertEqual(object_state.v_y, 0.0)
-        self.assertIs(object_state.histogram, detection_state.histogram)
+        self.assertEqual(object_state.histogram, detection_state.histogram)
 
     def test_update_from_detection(self):
         detection_state = factory_detection()
@@ -128,3 +129,16 @@ class TestObjectState(unittest.TestCase):
         self.assertEqual(object_state.frame_step, detection_state.frame_step)
         self.assertEqual(object_state.v_x, v_x)
         self.assertEqual(object_state.v_y, v_y)
+
+
+class TestStructuralConstraint(unittest.TestCase):
+
+    def test_instantiate(self):
+        delta_x = 1.5
+        delta_y = 2.0
+        delta_v_x = 0.5
+        delta_v_y = 0.67
+
+        sc = StructuralConstraint(
+            delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y)
+        self.assertIsInstance(sc, StructuralConstraint)

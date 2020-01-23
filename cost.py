@@ -1,8 +1,36 @@
 import math
+from typing import List, Dict
 
 import numpy as np
-
 from numba import jit
+
+from state import ObjectState, StructuralConstraint
+
+
+def calculate_structural_constraint(
+        object_states: List[ObjectState]) -> Dict[int, Dict[int, StructuralConstraint]]:
+    """Calculate structural constraint for every pair of objects
+    
+    Args:
+        object_states (List[ObjectState]): array of object states
+    
+    Returns:
+        Dict[int, Dict[int, StructuralConstraint]]: hashtable constains structural constraint for every pair
+    """
+    structural_constraints = {}
+    for i, first_object in enumerate(object_states[:-1]):
+        for j, second_object in enumerate(object_states[1:]):
+            delta_x = first_object.x - second_object.x
+            delta_y = first_object.y - second_object.y
+            delta_v_x = first_object.v_x - second_object.v_x
+            delta_v_y = first_object.v_y - second_object.v_y
+            sc_ij = StructuralConstraint(
+                delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y)
+            sc_ji = StructuralConstraint(
+                delta_x=-delta_x, delta_y=-delta_y, delta_v_x=-delta_v_x, delta_v_y=-delta_v_y)
+            structural_constraints[i][j + 1] = sc_ij
+            structural_constraints[j + 1][i] = sc_ji
+    return structural_constraints
 
 
 @jit
