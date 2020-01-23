@@ -1,0 +1,18 @@
+{
+    "python.pythonPath": "${workspaceFolder}/venv/Scripts/python.exe",
+    "python.jediEnabled": true,
+    "editor.formatOnSave": true,
+    "python.formatting.autopep8Args": [
+        "\"--max-line-length\"",
+        "\"100\"",
+        "\"--experimental\""
+    ],
+    "python.formatting.provider": "yapf",
+    "python.formatting.yapfArgs": [
+        "--style",
+        "{based_on_style: chromium, indent_width: 4, column_limit: 100}"
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "autoDocstring.docstringFormat": "google"
+}
