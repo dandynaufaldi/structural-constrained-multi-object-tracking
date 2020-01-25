@@ -15,7 +15,12 @@ class TestCalculateStructuralConstraint(unittest.TestCase):
         self.assertTrue(len(structural_constraints) == n_object)
         self.assertTrue(len(structural_constraints[0]) == n_object)
         for i in range(n_object):
-            self.assertIsNone(structural_constraints[i][i])
+            for j in range(n_object):
+                sc = structural_constraints[i][j]
+                if i == j:
+                    self.assertIsNone(sc)
+                else:
+                    self.assertIsInstance(sc, StructuralConstraint)
 
 
 class TestCalculateFs(unittest.TestCase):
