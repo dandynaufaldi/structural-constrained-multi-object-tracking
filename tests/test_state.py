@@ -3,26 +3,7 @@ import unittest
 import numpy as np
 
 from state import DetectionState, ObjectState, StructuralConstraint
-
-
-def factory_object() -> ObjectState:
-    x = 20
-    y = 20
-    width = 30
-    height = 40
-    frame_step = 0
-    state = ObjectState(x=x, y=y, width=width, height=height, frame_step=frame_step)
-    return state
-
-
-def factory_detection() -> DetectionState:
-    x = 30
-    y = 30
-    width = 30
-    height = 40
-    frame_step = 1
-    state = DetectionState(x=x, y=y, width=width, height=height, frame_step=frame_step)
-    return state
+from utils import factory_detection, factory_object
 
 
 class TestDetectionState(unittest.TestCase):
@@ -32,9 +13,7 @@ class TestDetectionState(unittest.TestCase):
         width = 30
         height = 40
         frame_step = 0
-        state = DetectionState(
-            x=x, y=y, width=width, height=height, frame_step=frame_step
-        )
+        state = DetectionState(x=x, y=y, width=width, height=height, frame_step=frame_step)
 
         self.assertIsInstance(state, DetectionState)
         self.assertEqual(state.x, x)
@@ -73,7 +52,7 @@ class TestDetectionState(unittest.TestCase):
         frame_step = 0
         full_image = np.empty((10, 10))
         with self.assertRaises(AssertionError):
-            state = DetectionState.from_bbox(
+            _ = DetectionState.from_bbox(
                 left=left,
                 top=top,
                 width=width,

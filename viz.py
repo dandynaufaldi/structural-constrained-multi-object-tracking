@@ -1,8 +1,7 @@
 import os
 
-import pandas as pd
-
 import cv2
+import pandas as pd
 
 dataset_dir = os.path.join("dataset", "2DMOT2015", "train")
 scenes = os.listdir(dataset_dir)

@@ -1,7 +1,7 @@
-from dataclasses import asdict, dataclass
 from typing import Optional, Union
 
 import numpy as np
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -27,8 +27,11 @@ class DetectionState:
         y = top + height / 2
         histogram = None
         if full_image is not None:
-            # RGB or BGR image
-            assert len(full_image.shape) == 3
+            shape = full_image.shape
+            assert len(shape) == 3 and shape[2] == 3, (
+                "full_image should be in RGB/BGR with shape (height, width, 3) but found %s"
+                % (shape,)
+            )
             image = full_image[top : top + height, left : left + width]
             graysacle = image.mean(axis=2)
             histogram, _ = np.histogram(graysacle, bins=bins)

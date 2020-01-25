@@ -1,8 +1,5 @@
 import os
-import time
 
-import cv2
-import numpy as np
 import pandas as pd
 
 dataset_dir = os.path.join("dataset", "2DMOT2015", "train")
