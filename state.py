@@ -72,3 +72,9 @@ class StructuralConstraint:
     delta_y: float
     delta_v_x: float
     delta_v_y: float
+
+    def __init__(self, first_object: ObjectState, second_object: ObjectState):
+        self.delta_x = first_object.x - second_object.x
+        self.delta_y = first_object.y - second_object.y
+        self.delta_v_x = first_object.v_x - second_object.v_x
+        self.delta_v_y = first_object.v_y - second_object.v_y

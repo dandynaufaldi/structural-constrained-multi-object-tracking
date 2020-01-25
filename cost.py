@@ -1,37 +1,63 @@
 import math
-from typing import List, Dict
+from typing import List
 
 import numpy as np
 from numba import jit
 
-from state import ObjectState, StructuralConstraint
+from state import DetectionState, ObjectState, StructuralConstraint
 
 
 def calculate_structural_constraint(
-        object_states: List[ObjectState]) -> Dict[int, Dict[int, StructuralConstraint]]:
+    object_states: List[ObjectState],
+) -> List[List[StructuralConstraint]]:
     """Calculate structural constraint for every pair of objects
     
     Args:
-        object_states (List[ObjectState]): array of object states
+        object_states (List[ObjectState]): array of M object states
     
     Returns:
-        Dict[int, Dict[int, StructuralConstraint]]:
-            hashtable constains structural constraint for every pair
+        List[List[StructuralConstraint]]:
+            2D array with shape (M, M) constains structural constraint for every pair objects
     """
-    structural_constraints = {}
-    for i, first_object in enumerate(object_states[:-1]):
-        for j, second_object in enumerate(object_states[1:]):
-            delta_x = first_object.x - second_object.x
-            delta_y = first_object.y - second_object.y
-            delta_v_x = first_object.v_x - second_object.v_x
-            delta_v_y = first_object.v_y - second_object.v_y
-            sc_ij = StructuralConstraint(
-                delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y)
-            sc_ji = StructuralConstraint(
-                delta_x=-delta_x, delta_y=-delta_y, delta_v_x=-delta_v_x, delta_v_y=-delta_v_y)
-            structural_constraints[i][j + 1] = sc_ij
-            structural_constraints[j + 1][i] = sc_ji
+    structural_constraints = [
+        [None for _ in range(len(object_states))] for _ in range(len(object_states))
+    ]
+    for i, first_object in enumerate(object_states):
+        for j, second_object in enumerate(object_states):
+            if i == j:
+                continue
+            sc_ij = StructuralConstraint(first_object, second_object)
+            sc_ji = StructuralConstraint(second_object, first_object)
+            structural_constraints[i][j] = sc_ij
+            structural_constraints[j][i] = sc_ji
     return structural_constraints
+
+
+def calculate_fs(
+    object_states: List[ObjectState], detection_states: List[DetectionState]
+) -> np.ndarray:
+    """Calculate Fs cost matrix given M objects and N detections
+    
+    Args:
+        object_states (List[ObjectState]): array of M objects
+        detection_states (List[DetectionState]): array of N detections
+    
+    Returns:
+        np.ndarray: MxN Fs matrix
+    """
+    fs_matrix = []
+    for object_state in object_states:
+        fs_row = []
+        for detection_state in detection_states:
+            fs = __f_s(
+                object_state.height,
+                object_state.width,
+                detection_state.height,
+                detection_state.width,
+            )
+            fs_row.append(fs)
+        fs_matrix.append(fs_row)
+    return np.array(fs_matrix)
 
 
 @jit
@@ -43,15 +69,16 @@ def iou(bb_test: np.ndarray, bb_gt: np.ndarray) -> float:
     yy1 = np.maximum(bb_test[1], bb_gt[1])
     xx2 = np.minimum(bb_test[2], bb_gt[2])
     yy2 = np.minimum(bb_test[3], bb_gt[3])
-    w = np.maximum(0., xx2 - xx1)
-    h = np.maximum(0., yy2 - yy1)
+    w = np.maximum(0.0, xx2 - xx1)
+    h = np.maximum(0.0, yy2 - yy1)
     wh = w * h
-    o = wh / ((bb_test[2] - bb_test[0]) * (bb_test[3] - bb_test[1]) + (bb_gt[2] - bb_gt[0]) *
-              (bb_gt[3] - bb_gt[1]) - wh)
-    return (o)
+    bbox1 = (bb_test[2] - bb_test[0]) * (bb_test[3] - bb_test[1])
+    bbox2 = (bb_gt[2] - bb_gt[0]) * (bb_gt[3] - bb_gt[1])
+    o = wh / (bbox1 + bbox2 - wh)
+    return o
 
 
-def f_s(h_obj: float, w_obj: float, h_det: float, w_det: float) -> float:
+def __f_s(h_obj: float, w_obj: float, h_det: float, w_det: float) -> float:
     h = abs(h_obj - h_det) / (2 * (h_obj + h_det))
     w = abs(w_obj - w_det) / (2 * (w_obj + w_det))
     return -1 * math.log(1 - h - w)
