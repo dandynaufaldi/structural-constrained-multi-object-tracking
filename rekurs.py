@@ -20,5 +20,21 @@ def generate(index: int, array: list):
                 array.pop()
 
 
-for perm in generate(0, []):
+def generate_stack(index: int, array: list):
+    global mat
+    stack = [(index, array)]
+    while stack:
+        index, array = stack.pop()
+        print("panjang", len(stack))
+        if len(array) == len(mat):
+            yield array
+        else:
+            for i, val in enumerate(mat[index]):
+                if val == 1:
+                    arr: list = array.copy()
+                    arr.append(i)
+                    stack.append((index + 1, arr))
+
+
+for perm in generate_stack(0, []):
     print(perm)

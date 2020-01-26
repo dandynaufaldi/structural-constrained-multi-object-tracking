@@ -1,5 +1,5 @@
 import math
-from typing import List
+from typing import Iterable, List, Tuple
 
 import numpy as np
 
@@ -54,7 +54,7 @@ def gating(
     """
     distance_matrix = __center_distance(object_states, detection_states)
     diagonal_vector = __diagonal(object_states)
-    diagonal_column_vector = diagonal_vector.reshape(diagonal_vector.size, 1)
+    diagonal_column_vector = diagonal_vector.reshape(-1, 1)
     diagonal_matrix = np.tile(diagonal_column_vector, (1, len(detection_states)))
 
     assert diagonal_matrix.shape == fs_matrix.shape, (
@@ -84,3 +84,30 @@ def subgroup_by_cluster(object_states: List[ObjectState], n_member: int = 5) -> 
         indices = np.flatnonzero(labels == label)
         groups.append(indices.tolist())
     return groups
+
+
+def __assignment_matrix_for_subgroup(
+    gated_assignment_matrix: np.ndarray, subgroup: List[int]
+) -> np.ndarray:
+    vector_d0 = np.ones((len(gated_assignment_matrix), 1), dtype="int")
+    augmented_assignment_matrix = np.hstack((vector_d0, gated_assignment_matrix))
+    return augmented_assignment_matrix[subgroup]
+
+
+def possible_assignment_generator(
+    gated_assignment_matrix: np.ndarray, subgroups: List[List[int]]
+) -> Iterable[Tuple[List[int], List[int]]]:
+    for subgroup in subgroups:
+        assignment_matrix = __assignment_matrix_for_subgroup(gated_assignment_matrix, subgroup)
+        n_object = len(subgroup)
+        stack: List[Tuple[int, List[int]]] = [(0, [])]
+        while stack:
+            index, array = stack.pop()
+            if len(array) == n_object:
+                yield (subgroup, array)
+            else:
+                for i, val in enumerate(assignment_matrix[index]):
+                    if val == 1:
+                        arr = array.copy()
+                        arr.append(i)
+                        stack.append((index + 1, arr))
