@@ -97,6 +97,21 @@ def __assignment_matrix_for_subgroup(
 def possible_assignment_generator(
     gated_assignment_matrix: np.ndarray, subgroups: List[List[int]]
 ) -> Iterable[Tuple[List[int], List[int]]]:
+    """Permute all possible assignment given assignment matrix from gating and list of subgroups
+
+    Args:
+        gated_assignment_matrix (np.ndarray): assignment matrix from gating process
+        subgroups (List[List[int]]): List of subgroup. Each subgroup contains index number of object
+
+    Yields:
+        Iterable[Tuple[List[int], List[int]]]: (assignment list, subgroup used)
+        Assignment list has lenth same as current subgroup being used and contain detection index
+        assigned to an object.
+        Example:
+        Subgroup = [2,3,4], which is object with index 2,3, and 4 (0 based)
+        Assignment list = [0, 1, 0], which map object 2 to detection 0, object 3 to detection 1
+        and object 4 to detection 0. Detection 0 for mis-detected
+    """
     for subgroup in subgroups:
         assignment_matrix = __assignment_matrix_for_subgroup(gated_assignment_matrix, subgroup)
         n_object = len(subgroup)
