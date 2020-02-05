@@ -95,16 +95,16 @@ def __assignment_matrix_for_subgroup(
 
 
 def possible_assignment_generator(
-    gated_assignment_matrix: np.ndarray, subgroups: List[List[int]]
-) -> Iterable[Tuple[List[int], List[int]]]:
-    """Permute all possible assignment given assignment matrix from gating and list of subgroups
+    gated_assignment_matrix: np.ndarray, subgroup: List[int]
+) -> Iterable[List[int]]:
+    """Permute all possible assignment given assignment matrix from gating and subgroup
 
     Args:
         gated_assignment_matrix (np.ndarray): assignment matrix from gating process
-        subgroups (List[List[int]]): List of subgroup. Each subgroup contains index number of object
+        subgroup (List[int]): subgroup contains index number of object
 
     Yields:
-        Iterable[Tuple[List[int], List[int]]]: (assignment list, subgroup used)
+        Iterable[List[int]]: assignment list
         Assignment list has lenth same as current subgroup being used and contain detection index
         assigned to an object.
         Example:
@@ -112,17 +112,16 @@ def possible_assignment_generator(
         Assignment list = [0, 1, 0], which map object 2 to detection 0, object 3 to detection 1
         and object 4 to detection 0. Detection 0 for mis-detected
     """
-    for subgroup in subgroups:
-        assignment_matrix = __assignment_matrix_for_subgroup(gated_assignment_matrix, subgroup)
-        n_object = len(subgroup)
-        stack: List[Tuple[int, List[int]]] = [(0, [])]
-        while stack:
-            index, array = stack.pop()
-            if len(array) == n_object:
-                yield (subgroup, array)
-            else:
-                for i, val in enumerate(assignment_matrix[index]):
-                    if val == 1:
-                        arr = array.copy()
-                        arr.append(i)
-                        stack.append((index + 1, arr))
+    assignment_matrix = __assignment_matrix_for_subgroup(gated_assignment_matrix, subgroup)
+    n_object = len(subgroup)
+    stack: List[Tuple[int, List[int]]] = [(0, [])]
+    while stack:
+        index, array = stack.pop()
+        if len(array) == n_object:
+            yield array
+        else:
+            for i, val in enumerate(assignment_matrix[index]):
+                if val == 1:
+                    arr = array.copy()
+                    arr.append(i)
+                    stack.append((index + 1, arr))

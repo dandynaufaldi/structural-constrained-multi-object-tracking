@@ -51,5 +51,6 @@ class TestAssignmentGenerator(unittest.TestCase):
         subgroups = np.arange(n_object)
         np.random.shuffle(subgroups)
         subgroups = [subgroups[: n_object // 2], subgroups[n_object // 2 :]]
-        for subgroup, assignment in possible_assignment_generator(assignment_matrix, subgroups):
-            self.assertEqual(len(assignment), len(subgroup))
+        for subgroup in subgroups:
+            for assignment in possible_assignment_generator(assignment_matrix, subgroup):
+                self.assertEqual(len(assignment), len(subgroup))
