@@ -49,12 +49,7 @@ def calculate_fs(
     for object_state in object_states:
         fs_row = []
         for detection_state in detection_states:
-            fs = __f_s(
-                object_state.height,
-                object_state.width,
-                detection_state.height,
-                detection_state.width,
-            )
+            fs = f_s(object_state, detection_state)
             fs_row.append(fs)
         fs_matrix.append(fs_row)
     return np.array(fs_matrix)
@@ -78,7 +73,9 @@ def iou(bb_test: np.ndarray, bb_gt: np.ndarray) -> float:
     return o
 
 
-def __f_s(h_obj: float, w_obj: float, h_det: float, w_det: float) -> float:
+def f_s(object_state: ObjectState, detection_state: DetectionState) -> float:
+    h_obj, w_obj = object_state.height, object_state.width
+    h_det, w_det = detection_state.height, detection_state.width
     h = abs(h_obj - h_det) / (2 * (h_obj + h_det))
     w = abs(w_obj - w_det) / (2 * (w_obj + w_det))
     return -1 * math.log(1 - h - w)
@@ -89,29 +86,37 @@ def get_histogram(img: np.ndarray, bins: int = 16) -> np.ndarray:
     return histogram
 
 
-def f_a(hist_obj: np.ndarray, hist_det: np.ndarray) -> float:
+def f_a(object_state: ObjectState, detection_state: DetectionState) -> float:
+    hist_obj = object_state.histogram
+    hist_det = detection_state.histogram
     root = np.sqrt(hist_obj * hist_det)
     summation = np.sum(root)
     return -np.log(summation)
 
 
-def f_c(state_j: np.ndarray, e_ij: np.ndarray, det_k: np.ndarray, det_q: np.ndarray) -> float:
-    """
+def f_c(
+    object_state: ObjectState,
+    sc_ij: StructuralConstraint,
+    detection_k: DetectionState,
+    detection_q: DetectionState,
+) -> float:
+    """[summary]
+
     Args:
-        state_j (np.ndarray): [x_j, y_j, w_j. h_j]
-        e_ij (np.ndarray): [x_ij, y_ij, v_x_ij. v_y_ij]
-        det_k (np.ndarray): [x_k, y_k, w_k. h_k]
-        det_q (np.ndarray): [x_q, y_q, w_q. h_q]
-    
+        object_state (ObjectState): [description]
+        sc_ij (StructuralConstraint): [description]
+        detection_k (DetectionState): [description]
+        detection_q (DetectionState): [description]
+
     Returns:
         float: f_c cost
     """
-    s_jk_base = np.array([det_k[0], det_k[1], 0, 0])
-    s_jk_add = np.array([e_ij[0], e_ij[1], state_j[2], state_j[3]])
+    s_jk_base = np.array([detection_k.x, detection_k.y, 0, 0])
+    s_jk_add = np.array([sc_ij.delta_x, sc_ij.delta_y, object_state.width, object_state.height])
     s_jk = s_jk_base + s_jk_add
 
     # convert to [x1, y1, x2, y2]
-    det_q = np.copy(det_q)
+    det_q = np.array([detection_q.x, detection_q.y, detection_q.width, detection_q.height])
     det_q[2:] = det_q[:2] + det_q[2:]
     s_jk[2:] = s_jk[:2] + s_jk[2:]
 
