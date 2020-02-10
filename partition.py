@@ -1,5 +1,5 @@
 import math
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Set, Tuple
 
 import numpy as np
 
@@ -114,14 +114,20 @@ def possible_assignment_generator(
     """
     assignment_matrix = __assignment_matrix_for_subgroup(gated_assignment_matrix, subgroup)
     n_object = len(subgroup)
-    stack: List[Tuple[int, List[int]]] = [(0, [])]
+    stack: List[Tuple[int, List[int], Set[int]]] = [(0, [], set())]
     while stack:
-        index, array = stack.pop()
+        index, array, picked = stack.pop()
         if len(array) == n_object:
             yield array
+        if index == n_object:
+            continue
         else:
             for i, val in enumerate(assignment_matrix[index]):
                 if val == 1:
+                    if i != 0 and i in picked:
+                        continue
                     arr = array.copy()
                     arr.append(i)
-                    stack.append((index + 1, arr))
+                    pick = picked.copy()
+                    pick.add(i)
+                    stack.append((index + 1, arr, pick))
