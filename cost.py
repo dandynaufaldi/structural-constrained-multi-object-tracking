@@ -100,17 +100,6 @@ def f_c(
     detection_k: DetectionState,
     detection_q: DetectionState,
 ) -> float:
-    """[summary]
-
-    Args:
-        object_state (ObjectState): [description]
-        sc_ij (StructuralConstraint): [description]
-        detection_k (DetectionState): [description]
-        detection_q (DetectionState): [description]
-
-    Returns:
-        float: f_c cost
-    """
     s_jk_base = np.array([detection_k.x, detection_k.y, 0, 0])
     s_jk_add = np.array([sc_ij.delta_x, sc_ij.delta_y, object_state.width, object_state.height])
     s_jk = s_jk_base + s_jk_add
@@ -121,6 +110,7 @@ def f_c(
     s_jk[2:] = s_jk[:2] + s_jk[2:]
 
     iou_score = iou(s_jk, det_q)
+    iou_score = max(iou_score, 1)
     cost = -np.log(iou_score)
     return cost
 
