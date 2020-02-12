@@ -1,6 +1,9 @@
 from typing import List
 
-from cost import f_a, f_c, f_s
+import numpy as np
+
+from cost import calculate_structural_constraint, f_a, f_c, f_s
+from partition import possible_assignment_generator
 from state import DetectionState, ObjectState, StructuralConstraint
 
 
@@ -96,5 +99,48 @@ def cost_by_possible_assignment(
             object_states=object_states,
             detection_states=detection_states,
         )
+    if anchor_count == 0:
+        return np.inf
     cost /= anchor_count
     return cost
+
+
+def best_assignment_by_subgroup(
+    subgroup: List[int],
+    gated_assignment_matrix: np.ndarray,
+    object_states: List[ObjectState],
+    detection_states: List[DetectionState],
+) -> np.ndarray:
+    """Compute the best assignment matrix for a given object subgroup and assignment matrix
+
+    Args:
+        subgroup (List[int]): subgroup contains index number of object
+        gated_assignment_matrix (np.ndarray): assignment matrix from gating process
+        object_states (List[ObjectState]): list of M object states
+        detection_states (List[DetectionState]): list of N detection states
+
+    Returns:
+        np.ndarray: assignment matrix with shape (M, N) for M objects and N detections
+    """
+    min_cost = np.inf
+    min_assignment_list = None
+    structural_constraints = calculate_structural_constraint(object_states)
+    for possible_assignment in possible_assignment_generator(gated_assignment_matrix, subgroup):
+        cost = cost_by_possible_assignment(
+            possible_assignment=possible_assignment,
+            subgroup=subgroup,
+            structural_constraints=structural_constraints,
+            object_states=object_states,
+            detection_states=detection_states,
+        )
+        if cost < min_cost:
+            min_cost = cost
+            min_assignment_list = possible_assignment.copy()
+    best_assignment = np.zeros_like(gated_assignment_matrix)
+    for obj_index, detection_index in enumerate(min_assignment_list):
+        object_index = subgroup[obj_index]
+        detection_index -= 1  # compensate d0
+        if detection_index < 0:
+            continue
+        best_assignment[object_index][detection_index] = 1
+    return best_assignment
