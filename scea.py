@@ -2,8 +2,8 @@ from typing import List
 
 import numpy as np
 
-from cost import calculate_structural_constraint, f_a, f_c, f_s
-from partition import possible_assignment_generator
+from cost import calculate_fs, calculate_structural_constraint, f_a, f_c, f_s
+from partition import gating, possible_assignment_generator, subgroup_by_cluster
 from state import DetectionState, ObjectState, StructuralConstraint
 
 
@@ -144,3 +144,26 @@ def best_assignment_by_subgroup(
             continue
         best_assignment[object_index][detection_index] = 1
     return best_assignment
+
+
+def best_assignment(
+    object_states: List[ObjectState], detection_states: List[DetectionState]
+) -> np.ndarray:
+    fs_matrix = calculate_fs(object_states, detection_states)
+    gated_assignment_matrix = gating(
+        fs_matrix=fs_matrix, object_states=object_states, detection_states=detection_states
+    )
+    subgroups = subgroup_by_cluster(object_states)
+    n_object = len(object_states)
+    n_detection = len(detection_states)
+    assignment_matrix = np.zeros((n_object, n_detection), dtype="int")
+    for subgroup in subgroups:
+        current_best_assignment = best_assignment_by_subgroup(
+            subgroup=subgroup,
+            gated_assignment_matrix=gated_assignment_matrix,
+            object_states=object_states,
+            detection_states=detection_states,
+        )
+        mask = current_best_assignment == 1
+        assignment_matrix[mask] = 1
+    return assignment_matrix
