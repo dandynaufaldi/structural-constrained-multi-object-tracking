@@ -167,3 +167,13 @@ def best_assignment(
         mask = current_best_assignment == 1
         assignment_matrix[mask] = 1
     return assignment_matrix
+
+
+def get_missing_objects(assignment_matrix: np.ndarray) -> List[int]:
+    summation = assignment_matrix.sum(axis=1)
+    return np.argwhere(summation == 0).flatten().tolist()
+
+
+def get_missing_detections(assignment_matrix: np.ndarray) -> List[int]:
+    summation = assignment_matrix.sum(axis=0)
+    return np.argwhere(summation == 0).flatten().tolist()

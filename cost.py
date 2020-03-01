@@ -115,5 +115,28 @@ def f_c(
     return cost
 
 
+def f_r(
+    object_state: ObjectState, detection_state: DetectionState, match_gamma: ObjectState
+) -> float:
+    s_i_gamma_base = np.array([match_gamma.x, match_gamma.y, 0, 0])
+    sc_object_gamma = StructuralConstraint(object_state, match_gamma)
+    s_i_gamma_add = np.array(
+        [sc_object_gamma.delta_x, sc_object_gamma.delta_y, object_state.width, object_state.height]
+    )
+    s_i_gamma = s_i_gamma_base + s_i_gamma_add
+
+    # convert to [x1, y1, x2, y2]
+    det_q = np.array(
+        [detection_state.x, detection_state.y, detection_state.width, detection_state.height]
+    )
+    det_q[2:] = det_q[:2] + det_q[2:]
+    s_i_gamma[2:] = s_i_gamma[:2] + s_i_gamma[2:]
+
+    iou_score = iou(s_i_gamma, det_q)
+    iou_score = max(iou_score, 1)
+    cost = -np.log(iou_score)
+    return cost
+
+
 if __name__ == "__main__":
     pass
