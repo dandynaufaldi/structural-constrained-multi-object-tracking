@@ -83,17 +83,14 @@ def best_assignment(
     assignment_cost_matrix[assignment_cost_matrix == np.inf] = max_val * 2
     rows, cols = linear_sum_assignment(assignment_cost_matrix)
 
-    non_d0_row, non_d0_col = [], []
     n_unassigned_det = len(unassigned_detections)
     n_missing_objects = len(missing_objects)
 
-    # filter out any object assignment to d0
-    for row, col in zip(rows, cols):
-        if col >= n_unassigned_det:
-            continue
-        non_d0_row.append(row)
-        non_d0_col.append(col)
+    assignment_matrix = np.zeros(
+        (n_missing_objects, n_unassigned_det + n_missing_objects), dtype="int"
+    )
+    assignment_matrix[rows, cols] = 1
 
-    assignment_matrix = np.zeros((n_missing_objects, n_unassigned_det), dtype="int")
-    assignment_matrix[non_d0_row, non_d0_col] = 1
+    # exclude column for d0
+    assignment_matrix = assignment_matrix[:, :n_unassigned_det]
     return assignment_matrix
