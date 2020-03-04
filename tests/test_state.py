@@ -13,7 +13,9 @@ class TestDetectionState(unittest.TestCase):
         width = 30
         height = 40
         frame_step = 0
-        state = DetectionState(x=x, y=y, width=width, height=height, frame_step=frame_step)
+        state = DetectionState(
+            x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=np.empty(8)
+        )
 
         self.assertIsInstance(state, DetectionState)
         self.assertEqual(state.x, x)
@@ -21,7 +23,6 @@ class TestDetectionState(unittest.TestCase):
         self.assertEqual(state.height, height)
         self.assertEqual(state.width, width)
         self.assertEqual(state.frame_step, frame_step)
-        self.assertIs(state.histogram, None)
 
     def test_instantiate_from_bbox(self):
         left = 5
@@ -69,7 +70,9 @@ class TestObjectState(unittest.TestCase):
         width = 30
         height = 40
         frame_step = 0
-        state = ObjectState(x=x, y=y, width=width, height=height, frame_step=frame_step)
+        state = ObjectState(
+            x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=np.empty(8)
+        )
 
         self.assertIsInstance(state, ObjectState)
         self.assertEqual(state.x, x)
@@ -79,7 +82,6 @@ class TestObjectState(unittest.TestCase):
         self.assertEqual(state.frame_step, frame_step)
         self.assertEqual(state.v_x, 0.0)
         self.assertEqual(state.v_y, 0.0)
-        self.assertIsNone(state.histogram)
 
     def test_from_detection(self):
         detection_state = factory_detection()
@@ -93,7 +95,7 @@ class TestObjectState(unittest.TestCase):
         self.assertEqual(object_state.frame_step, detection_state.frame_step)
         self.assertEqual(object_state.v_x, 0.0)
         self.assertEqual(object_state.v_y, 0.0)
-        self.assertEqual(object_state.histogram, detection_state.histogram)
+        self.assertListEqual(object_state.histogram.tolist(), detection_state.histogram.tolist())
 
     def test_update_from_detection(self):
         detection_state = factory_detection()

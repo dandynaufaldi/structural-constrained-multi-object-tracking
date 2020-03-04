@@ -1,3 +1,5 @@
+import numpy as np
+
 from state import DetectionState, ObjectState
 
 
@@ -7,7 +9,9 @@ def factory_object() -> ObjectState:
     width = 30
     height = 40
     frame_step = 0
-    state = ObjectState(x=x, y=y, width=width, height=height, frame_step=frame_step)
+    state = ObjectState(
+        x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=np.empty(8)
+    )
     return state
 
 
@@ -17,5 +21,7 @@ def factory_detection() -> DetectionState:
     width = 30
     height = 40
     frame_step = 1
-    state = DetectionState(x=x, y=y, width=width, height=height, frame_step=frame_step)
+    state = DetectionState(
+        x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=np.empty(8)
+    )
     return state

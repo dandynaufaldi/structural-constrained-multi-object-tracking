@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 import numpy as np
 from dataclasses import asdict, dataclass
 
@@ -11,7 +9,7 @@ class DetectionState:
     width: float
     height: float
     frame_step: int
-    histogram: Optional[np.ndarray] = None
+    histogram: np.ndarray
 
     @staticmethod
     def from_bbox(
@@ -20,8 +18,8 @@ class DetectionState:
         width: int,
         height: int,
         frame_step: int,
-        full_image: Optional[np.ndarray] = None,
-        bins: Optional[Union[list, np.ndarray]] = np.arange(9) * 32,
+        full_image: np.ndarray,
+        n_bins: int = 8,
     ) -> "DetectionState":
         x = left + width / 2
         y = top + height / 2
@@ -34,6 +32,7 @@ class DetectionState:
             )
             image = full_image[top : top + height, left : left + width]
             graysacle = image.mean(axis=2)
+            bins = np.arange(n_bins + 1) * (256 // n_bins)
             histogram, _ = np.histogram(graysacle, bins=bins)
         return DetectionState(
             x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=histogram,
@@ -47,9 +46,9 @@ class ObjectState:
     width: float
     height: float
     frame_step: int
+    histogram: np.ndarray
     v_x: float = 0.0
     v_y: float = 0.0
-    histogram: Optional[np.ndarray] = None
 
     @staticmethod
     def from_detection(detection: DetectionState) -> "ObjectState":
