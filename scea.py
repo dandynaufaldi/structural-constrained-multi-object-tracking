@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Union
 
 import numpy as np
 
-from cost import calculate_fs, calculate_structural_constraint, f_a, f_c, f_s
+from cost import calculate_fs, f_a, f_c, f_s
 from partition import gating, possible_assignment_generator, subgroup_by_cluster
 from state import DetectionState, ObjectState, StructuralConstraint
 
@@ -110,6 +110,7 @@ def best_assignment_by_subgroup(
     gated_assignment_matrix: np.ndarray,
     object_states: List[ObjectState],
     detection_states: List[DetectionState],
+    structural_constraints: Union[np.ndarray, List[List[StructuralConstraint]]],
 ) -> np.ndarray:
     """Compute the best assignment matrix for a given object subgroup and assignment matrix
 
@@ -124,7 +125,6 @@ def best_assignment_by_subgroup(
     """
     min_cost = np.inf
     min_assignment_list = None
-    structural_constraints = calculate_structural_constraint(object_states)
     for possible_assignment in possible_assignment_generator(gated_assignment_matrix, subgroup):
         cost = cost_by_possible_assignment(
             possible_assignment=possible_assignment,
@@ -147,8 +147,14 @@ def best_assignment_by_subgroup(
 
 
 def best_assignment(
-    object_states: List[ObjectState], detection_states: List[DetectionState]
+    object_states: List[ObjectState],
+    detection_states: List[DetectionState],
+    structural_constraints: Union[np.ndarray, List[List[StructuralConstraint]]],
 ) -> np.ndarray:
+    assert isinstance(structural_constraints, np.ndarray), (
+        "Structural constraints passed must be a numpy ndarray, got type %s"
+        % (type(structural_constraints),)
+    )
     fs_matrix = calculate_fs(object_states, detection_states)
     gated_assignment_matrix = gating(
         fs_matrix=fs_matrix, object_states=object_states, detection_states=detection_states
@@ -158,11 +164,13 @@ def best_assignment(
     n_detection = len(detection_states)
     assignment_matrix = np.zeros((n_object, n_detection), dtype="int")
     for subgroup in subgroups:
+        structural_constraints_subgroup = structural_constraints[subgroup]
         current_best_assignment = best_assignment_by_subgroup(
             subgroup=subgroup,
             gated_assignment_matrix=gated_assignment_matrix,
             object_states=object_states,
             detection_states=detection_states,
+            structural_constraints=structural_constraints_subgroup,
         )
         mask = current_best_assignment == 1
         assignment_matrix[mask] = 1

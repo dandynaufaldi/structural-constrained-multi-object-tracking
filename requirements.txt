@@ -1,4 +1,5 @@
 dataclasses==0.7
+filterpy==1.4.5
 joblib==0.14.1
 llvmlite==0.31.0
 numba==0.47.0
