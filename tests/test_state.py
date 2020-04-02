@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from state import DetectionState, ObjectState, StructuralConstraint
+from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
 from utils import factory_detection, factory_object
 
 

@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from cost import calculate_fs, calculate_structural_constraint
-from state import StructuralConstraint
+from sc_tracker.cost import calculate_fs, calculate_structural_constraint
+from sc_tracker.state import StructuralConstraint
 from utils import factory_detection, factory_object
 
 

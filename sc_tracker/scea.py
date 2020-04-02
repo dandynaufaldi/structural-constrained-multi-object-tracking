@@ -2,9 +2,9 @@ from typing import List, Union
 
 import numpy as np
 
-from cost import calculate_fs, f_a, f_c, f_s
-from partition import gating, possible_assignment_generator, subgroup_by_cluster
-from state import DetectionState, ObjectState, StructuralConstraint
+from sc_tracker.cost import calculate_fs, f_a, f_c, f_s
+from sc_tracker.partition import gating, possible_assignment_generator, subgroup_by_cluster
+from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
 
 
 def cost_by_anchor(

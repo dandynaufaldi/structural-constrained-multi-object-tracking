@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from numba import jit
 
-from state import DetectionState, ObjectState, StructuralConstraint
+from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
 
 
 def calculate_structural_constraint(

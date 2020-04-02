@@ -1,6 +1,6 @@
 import numpy as np
 
-from state import DetectionState, ObjectState
+from sc_tracker.state import DetectionState, ObjectState
 
 
 def factory_object() -> ObjectState:

@@ -3,8 +3,8 @@ from typing import Iterable, List, Set, Tuple
 
 import numpy as np
 
+from sc_tracker.state import DetectionState, ObjectState
 from sklearn.cluster import KMeans
-from state import DetectionState, ObjectState
 
 
 def __center_distance(

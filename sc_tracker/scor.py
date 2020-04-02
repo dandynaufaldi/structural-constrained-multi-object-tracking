@@ -3,9 +3,9 @@ from typing import List
 
 import numpy as np
 
-import cost
+import sc_tracker.cost as cost
+from sc_tracker.state import DetectionState, ObjectState
 from scipy.optimize import linear_sum_assignment
-from state import DetectionState, ObjectState
 
 
 def velocity_resultant(object_i: ObjectState, object_j: ObjectState) -> float:

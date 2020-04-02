@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from partition import gating, possible_assignment_generator, subgroup_by_cluster
+from sc_tracker.partition import gating, possible_assignment_generator, subgroup_by_cluster
 from utils import factory_detection, factory_object
 
 
