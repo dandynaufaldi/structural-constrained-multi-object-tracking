@@ -152,8 +152,8 @@ def best_assignment(
     structural_constraints: Union[np.ndarray, List[List[StructuralConstraint]]],
 ) -> np.ndarray:
     assert isinstance(structural_constraints, np.ndarray), (
-        "Structural constraints passed must be a numpy ndarray, got type %s"
-        % (type(structural_constraints),)
+        "Structural constraints passed must be a numpy ndarray, "
+        f"got type {type(structural_constraints)}"
     )
     fs_matrix = calculate_fs(object_states, detection_states)
     gated_assignment_matrix = gating(

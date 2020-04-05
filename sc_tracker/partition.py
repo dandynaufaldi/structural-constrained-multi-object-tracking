@@ -58,8 +58,8 @@ def gating(
     diagonal_matrix = np.tile(diagonal_column_vector, (1, len(detection_states)))
 
     assert diagonal_matrix.shape == fs_matrix.shape, (
-        "Dimension mismatch, diagonal matrix is %s and fs matrix is %s"
-        % (diagonal_matrix.shape, fs_matrix.shape)
+        f"Dimension mismatch, diagonal matrix is {diagonal_matrix.shape} "
+        f"and fs matrix is {fs_matrix.shape}"
     )
     mask = (distance_matrix < diagonal_matrix) & (np.exp(-fs_matrix) > threshold)
     return mask

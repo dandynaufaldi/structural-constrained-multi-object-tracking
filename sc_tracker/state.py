@@ -27,8 +27,8 @@ class DetectionState:
         if full_image is not None:
             shape = full_image.shape
             assert len(shape) == 3 and shape[2] == 3, (
-                "full_image should be in RGB/BGR with shape (height, width, 3) but found %s"
-                % (shape,)
+                "full_image should be in RGB/BGR with shape (height, width, 3) "
+                f"but found {shape}"
             )
             image = full_image[top : top + height, left : left + width]
             graysacle = image.mean(axis=2)
