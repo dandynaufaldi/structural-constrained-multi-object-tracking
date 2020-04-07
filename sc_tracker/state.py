@@ -63,6 +63,17 @@ class ObjectState:
         self.width = detection.width
         self.height = detection.height
         self.frame_step = detection.frame_step
+        self.histogram = detection.histogram.copy()
+
+    def update_from_object_state(self, object_state: "ObjectState"):
+        self.x = object_state.x
+        self.y = object_state.y
+        self.v_x = object_state.v_x
+        self.v_y = object_state.v_y
+        self.width = object_state.width
+        self.height = object_state.width
+        self.frame_step = object_state.frame_step
+        self.histogram = object_state.histogram.copy()
 
 
 @dataclass
@@ -72,8 +83,19 @@ class StructuralConstraint:
     delta_v_x: float
     delta_v_y: float
 
-    def __init__(self, first_object: ObjectState, second_object: ObjectState):
-        self.delta_x = first_object.x - second_object.x
-        self.delta_y = first_object.y - second_object.y
-        self.delta_v_x = first_object.v_x - second_object.v_x
-        self.delta_v_y = first_object.v_y - second_object.v_y
+    def __init__(self, delta_x: float, delta_y: float, delta_v_x: float, delta_v_y: float):
+        self.delta_x = delta_x
+        self.delta_y = delta_y
+        self.delta_v_x = delta_v_x
+        self.delta_v_y = delta_v_y
+
+    @staticmethod
+    def create(first_object: ObjectState, second_object: ObjectState) -> "StructuralConstraint":
+        delta_x = first_object.x - second_object.x
+        delta_y = first_object.y - second_object.y
+        delta_v_x = first_object.v_x - second_object.v_x
+        delta_v_y = first_object.v_y - second_object.v_y
+
+        return StructuralConstraint(
+            delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y
+        )

@@ -1,8 +1,10 @@
+from typing import List
+
 import numpy as np
 from filterpy.kalman import KalmanFilter
 
+from sc_tracker.state import DetectionState, ObjectState
 from scipy.linalg import block_diag
-from state import DetectionState, ObjectState
 
 DIM_X = 6
 DIM_Z = 4
@@ -16,6 +18,12 @@ DEV_H = 15 ** 2
 
 class ObjectStateTracker:
     counter = 0
+    INDEX_X = 0
+    INDEX_Y = 1
+    INDEX_V_X = 2
+    INDEX_V_Y = 3
+    INDEX_W = 4
+    INDEX_H = 5
 
     def __init__(self, initial_state: ObjectState):
         self.id = ObjectStateTracker.counter
@@ -59,11 +67,15 @@ class ObjectStateTracker:
         self.frame_step = initial_state.frame_step
         self.histogram = initial_state.histogram.copy()
         self.hist_alpha = 0.1
-        self.history = [self.state]
+
+        self.__state = None
+        self.__set_state()
+        self.history: List[ObjectState] = [self.state]
 
     def update(self, detection: DetectionState):
         self.__update_state(detection)
         self.__update_histogram(detection)
+        self.__set_state()
 
         self.frame_step = detection.frame_step
         self.history.append(self.state)
@@ -78,6 +90,20 @@ class ObjectStateTracker:
         current_value = self.hist_alpha * detection.histogram
         self.histogram = old_value + current_value
 
+    def __set_state(self):
+        kf_x = self.kf.x
+        object_state = ObjectState(
+            x=kf_x[self.INDEX_X],
+            y=kf_x[self.INDEX_Y],
+            width=kf_x[self.INDEX_W],
+            height=kf_x[self.INDEX_H],
+            frame_step=self.frame_step,
+            histogram=self.histogram,
+            v_x=kf_x[self.INDEX_V_X],
+            v_y=kf_x[self.INDEX_V_Y],
+        )
+        self.__state = object_state
+
     @property
-    def state(self):
-        return np.ravel(self.kf.x)
+    def state(self) -> ObjectState:
+        return self.__state

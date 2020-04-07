@@ -26,8 +26,8 @@ def calculate_structural_constraint(
         for j, second_object in enumerate(object_states):
             if i == j:
                 continue
-            sc_ij = StructuralConstraint(first_object, second_object)
-            sc_ji = StructuralConstraint(second_object, first_object)
+            sc_ij = StructuralConstraint.create(first_object, second_object)
+            sc_ji = StructuralConstraint.create(second_object, first_object)
             structural_constraints[i][j] = sc_ij
             structural_constraints[j][i] = sc_ji
     return structural_constraints
@@ -119,7 +119,7 @@ def f_r(
     object_state: ObjectState, detection_state: DetectionState, match_gamma: ObjectState
 ) -> float:
     s_i_gamma_base = np.array([match_gamma.x, match_gamma.y, 0, 0])
-    sc_object_gamma = StructuralConstraint(object_state, match_gamma)
+    sc_object_gamma = StructuralConstraint.create(object_state, match_gamma)
     s_i_gamma_add = np.array(
         [sc_object_gamma.delta_x, sc_object_gamma.delta_y, object_state.width, object_state.height]
     )

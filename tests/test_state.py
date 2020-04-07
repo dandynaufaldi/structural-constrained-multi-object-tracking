@@ -117,5 +117,5 @@ class TestObjectState(unittest.TestCase):
 class TestStructuralConstraint(unittest.TestCase):
     def test_instantiate(self):
         object_state = factory_object()
-        sc = StructuralConstraint(object_state, object_state)
+        sc = StructuralConstraint.create(object_state, object_state)
         self.assertIsInstance(sc, StructuralConstraint)

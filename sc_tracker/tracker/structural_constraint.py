@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 from filterpy.kalman import KalmanFilter
 
+from sc_tracker.state import StructuralConstraint
 from scipy.linalg import block_diag
-from state import StructuralConstraint
 
 DIM_X = 4
 DIM_Z = 2
@@ -14,6 +14,11 @@ DEV_Y = 3 ** 2
 
 
 class StructuralConstraintTracker:
+    INDEX_X = 0
+    INDEX_Y = 1
+    INDEX_V_X = 2
+    INDEX_V_Y = 3
+
     def __init__(self, initial_state: StructuralConstraint):
         self.kf = KalmanFilter(dim_x=DIM_X, dim_z=DIM_Z)
 
@@ -45,13 +50,17 @@ class StructuralConstraintTracker:
                 initial_state.delta_v_y,
             ]
         )
-        self.history = [self.state]
+        self.__state = None
+        self.__set_state()
+        self.history: List[StructuralConstraint] = [self.state]
 
     def update(self, sc: Optional[StructuralConstraint] = None):
         if sc:
             self.__update_well_tracked(sc)
         else:
             self.__update_missing()
+
+        self.__set_state()
         self.history.append(self.state)
 
     def __update_well_tracked(self, sc: StructuralConstraint):
@@ -63,6 +72,16 @@ class StructuralConstraintTracker:
         column_vector_x = self.kf.x.reshape((-1, 1))
         self.kf.x = np.dot(self.kf.F, column_vector_x)
 
+    def __set_state(self):
+        kf_x = self.kf.x
+        structural_constraint = StructuralConstraint.create(
+            delta_x=kf_x[self.INDEX_X],
+            delta_y=kf_x[self.INDEX_Y],
+            delta_v_x=kf_x[self.INDEX_V_X],
+            delta_v_y=kf_x[self.INDEX_V_Y],
+        )
+        self.__state = structural_constraint
+
     @property
-    def state(self):
-        return np.ravel(self.kf.x)
+    def state(self) -> StructuralConstraint:
+        return self.__state
