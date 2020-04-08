@@ -1,10 +1,16 @@
-from typing import List, Union
+from typing import List, NamedTuple, Union
 
 import numpy as np
 
 from sc_tracker.cost import calculate_fs, f_a, f_c, f_s
 from sc_tracker.partition import gating, possible_assignment_generator, subgroup_by_cluster
 from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
+
+
+class ConfigSCEA(NamedTuple):
+    default_cost_d0: float = 4.0
+    num_cluster_member: int = 5
+    gating_threshold: float = 0.7
 
 
 def cost_by_anchor(
@@ -84,6 +90,7 @@ def cost_by_possible_assignment(
     structural_constraints: List[List[StructuralConstraint]],
     object_states: List[ObjectState],
     detection_states: List[DetectionState],
+    default_cost_d0: float = 4.0,
 ) -> float:
     anchor_count = 0
     cost = 0.0
@@ -98,6 +105,7 @@ def cost_by_possible_assignment(
             structural_constraints=structural_constraints,
             object_states=object_states,
             detection_states=detection_states,
+            default_cost_d0=default_cost_d0,
         )
     if anchor_count == 0:
         return np.inf
@@ -111,6 +119,7 @@ def best_assignment_by_subgroup(
     object_states: List[ObjectState],
     detection_states: List[DetectionState],
     structural_constraints: Union[np.ndarray, List[List[StructuralConstraint]]],
+    default_cost_d0: float = 4.0,
 ) -> np.ndarray:
     """Compute the best assignment matrix for a given object subgroup and assignment matrix
 
@@ -132,6 +141,7 @@ def best_assignment_by_subgroup(
             structural_constraints=structural_constraints,
             object_states=object_states,
             detection_states=detection_states,
+            default_cost_d0=default_cost_d0,
         )
         if cost < min_cost:
             min_cost = cost
@@ -150,6 +160,9 @@ def best_assignment(
     object_states: List[ObjectState],
     detection_states: List[DetectionState],
     structural_constraints: Union[np.ndarray, List[List[StructuralConstraint]]],
+    default_cost_d0: float = 4.0,
+    gating_threshold: float = 0.7,
+    num_cluster_member: int = 5,
 ) -> np.ndarray:
     assert isinstance(structural_constraints, np.ndarray), (
         "Structural constraints passed must be a numpy ndarray, "
@@ -157,9 +170,12 @@ def best_assignment(
     )
     fs_matrix = calculate_fs(object_states, detection_states)
     gated_assignment_matrix = gating(
-        fs_matrix=fs_matrix, object_states=object_states, detection_states=detection_states
+        fs_matrix=fs_matrix,
+        object_states=object_states,
+        detection_states=detection_states,
+        threshold=gating_threshold,
     )
-    subgroups = subgroup_by_cluster(object_states)
+    subgroups = subgroup_by_cluster(object_states, n_member=num_cluster_member)
     n_object = len(object_states)
     n_detection = len(detection_states)
     assignment_matrix = np.zeros((n_object, n_detection), dtype="int")
@@ -171,6 +187,7 @@ def best_assignment(
             object_states=object_states,
             detection_states=detection_states,
             structural_constraints=structural_constraints_subgroup,
+            default_cost_d0=default_cost_d0,
         )
         mask = current_best_assignment == 1
         assignment_matrix[mask] = 1

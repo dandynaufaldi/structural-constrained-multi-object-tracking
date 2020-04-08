@@ -1,11 +1,15 @@
 import math
-from typing import List
+from typing import List, NamedTuple
 
 import numpy as np
 
 import sc_tracker.cost as cost
 from sc_tracker.state import DetectionState, ObjectState
 from scipy.optimize import linear_sum_assignment
+
+
+class ConfigSCOR(NamedTuple):
+    default_cost_d0: float = 4.0
 
 
 def velocity_resultant(object_i: ObjectState, object_j: ObjectState) -> float:
