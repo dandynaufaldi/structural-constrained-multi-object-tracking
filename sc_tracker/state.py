@@ -99,3 +99,9 @@ class StructuralConstraint:
         return StructuralConstraint(
             delta_x=delta_x, delta_y=delta_y, delta_v_x=delta_v_x, delta_v_y=delta_v_y
         )
+
+    def update_from_sc(self, sc: "StructuralConstraint"):
+        self.delta_x = sc.delta_x
+        self.delta_y = sc.delta_y
+        self.delta_v_x = sc.delta_v_x
+        self.delta_v_y = sc.delta_v_y
