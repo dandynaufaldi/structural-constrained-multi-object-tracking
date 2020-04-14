@@ -133,7 +133,7 @@ def best_assignment_by_subgroup(
         np.ndarray: assignment matrix with shape (M, N) for M objects and N detections
     """
     min_cost = np.inf
-    min_assignment_list = None
+    min_assignment_list = []
     for possible_assignment in possible_assignment_generator(gated_assignment_matrix, subgroup):
         cost = cost_by_possible_assignment(
             possible_assignment=possible_assignment,
@@ -147,8 +147,6 @@ def best_assignment_by_subgroup(
             min_cost = cost
             min_assignment_list = possible_assignment.copy()
     best_assignment = np.zeros_like(gated_assignment_matrix, dtype=int)
-    if min_assignment_list is None:
-        return best_assignment, min_cost
     for obj_index, detection_index in enumerate(min_assignment_list):
         object_index = subgroup[obj_index]
         detection_index -= 1  # compensate d0
@@ -201,8 +199,8 @@ def best_assignment(
         if intersection_column_mask.sum() > 0:
             intersection_index = np.where(intersection_column_mask == 1)[0]
             for intersection in intersection_index:
-                global_assignment_cost = np.min(assignment_cost[:, intersection])
-                global_assignment_row = np.argmin(assignment_cost[:, intersection])
+                global_assignment_cost = assignment_cost[:, intersection].min()
+                global_assignment_row = assignment_cost[:, intersection].argmin()
                 if global_assignment_cost < current_cost:
                     mask[:, intersection] = False
                 else:
