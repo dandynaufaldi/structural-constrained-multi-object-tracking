@@ -1,4 +1,4 @@
-from typing import List, NamedTuple, Union
+from typing import List, NamedTuple, Tuple, Union
 
 import numpy as np
 
@@ -120,7 +120,7 @@ def best_assignment_by_subgroup(
     detection_states: List[DetectionState],
     structural_constraints: Union[np.ndarray, List[List[StructuralConstraint]]],
     default_cost_d0: float = 4.0,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, float]:
     """Compute the best assignment matrix for a given object subgroup and assignment matrix
 
     Args:
@@ -146,14 +146,16 @@ def best_assignment_by_subgroup(
         if cost < min_cost:
             min_cost = cost
             min_assignment_list = possible_assignment.copy()
-    best_assignment = np.zeros_like(gated_assignment_matrix)
+    best_assignment = np.zeros_like(gated_assignment_matrix, dtype=int)
+    if min_assignment_list is None:
+        return best_assignment, min_cost
     for obj_index, detection_index in enumerate(min_assignment_list):
         object_index = subgroup[obj_index]
         detection_index -= 1  # compensate d0
         if detection_index < 0:
             continue
         best_assignment[object_index][detection_index] = 1
-    return best_assignment
+    return best_assignment, min_cost
 
 
 def best_assignment(
@@ -179,26 +181,42 @@ def best_assignment(
     n_object = len(object_states)
     n_detection = len(detection_states)
     assignment_matrix = np.zeros((n_object, n_detection), dtype="int")
+    assignment_cost = np.empty((n_object, n_detection))
+    assignment_cost[:, :] = np.inf
     for subgroup in subgroups:
-        structural_constraints_subgroup = structural_constraints[subgroup]
-        current_best_assignment = best_assignment_by_subgroup(
+        current_best_assignment, current_cost = best_assignment_by_subgroup(
             subgroup=subgroup,
             gated_assignment_matrix=gated_assignment_matrix,
             object_states=object_states,
             detection_states=detection_states,
-            structural_constraints=structural_constraints_subgroup,
+            structural_constraints=structural_constraints,
             default_cost_d0=default_cost_d0,
         )
         mask = current_best_assignment == 1
+        mask_column = mask.sum(axis=0).flatten()
+        mask_global_column = assignment_matrix.sum(axis=0).flatten()
+
+        # check for same assignment
+        intersection_column_mask = np.logical_and(mask_column, mask_global_column)
+        if np.sum(intersection_column_mask) > 0:
+            intersection_index = np.where(intersection_column_mask == 1)[0]
+            for intersection in intersection_index:
+                global_assignment_cost = np.min(assignment_cost[:, intersection])
+                global_assignment_row = np.argmin(assignment_cost[:, intersection])
+                if global_assignment_cost < current_cost:
+                    mask[:, intersection] = False
+                else:
+                    assignment_matrix[global_assignment_row, intersection] = 0
         assignment_matrix[mask] = 1
+        assignment_cost[mask] = current_cost
     return assignment_matrix
 
 
 def get_missing_objects(assignment_matrix: np.ndarray) -> List[int]:
     summation = assignment_matrix.sum(axis=1)
-    return np.argwhere(summation == 0).flatten().tolist()
+    return np.argwhere(summation == 0).flatten()
 
 
 def get_missing_detections(assignment_matrix: np.ndarray) -> List[int]:
     summation = assignment_matrix.sum(axis=0)
-    return np.argwhere(summation == 0).flatten().tolist()
+    return np.argwhere(summation == 0).flatten()
