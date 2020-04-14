@@ -2,6 +2,8 @@ dataset/**/*.jpg
 dataset/**/*.txt
 dataset/**/*.zip
 dataset/**/*.csv
+dataset/**/*.h5
+dataset/**/*.npy
 venv/
 env/
 /**/__pycache__/

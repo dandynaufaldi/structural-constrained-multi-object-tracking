@@ -16,9 +16,9 @@ from sc_tracker.tracker.structural_constraint import StructuralConstraintTracker
 
 def reset_index(source: np.array, deleted_index: np.ndarray) -> np.ndarray:
     combined = np.concatenate((source, deleted_index))
-    if not combined:
+    if len(combined) == 0:
         return source
-    max_value = np.max([source, deleted_index])
+    max_value = np.max(combined)
 
     mask = np.zeros(max_value + 1, dtype="bool")
     mask[source] = 1
@@ -87,7 +87,7 @@ class Tracker:
         self.__first = False
 
     def __update_routine(self, detections: List[DetectionState], current_frame_step: int):
-        if not detections:
+        if len(detections) == 0:
             self.__missing_indexes = np.concatenate(
                 (self.__missing_indexes, self.__well_tracked_indexes)
             )
@@ -101,19 +101,18 @@ class Tracker:
             scea_unassigned_detections_index,
         ) = self.__process_scea(detections)
 
-        unassigned_detection_states = detections[scea_unassigned_detections_index]
         (
             scor_tracked_object_index,
             scor_assigned_detection_index,
             scor_unassigned_detections_index,
-        ) = self.__process_scor(unassigned_detection_states)
+        ) = self.__process_scor(scea_unassigned_detections_index, detections)
 
         tracked_object_indexes = np.concatenate(
             (scea_tracked_object_index, scor_tracked_object_index)
-        )
+        ).astype(int)
         assigned_detection_indexes = np.concatenate(
             (scea_assigned_detection_index, scor_assigned_detection_index)
-        )
+        ).astype(int)
 
         self.__update_object_trackers(
             tracked_object_indexes=tracked_object_indexes,
@@ -129,7 +128,9 @@ class Tracker:
 
         self.__update_last_updates(current_frame_step=current_frame_step)
         self.__remove_missing_objects(current_frame_step=current_frame_step)
-        self.__create_new_well_tracked_objects(detections[scor_unassigned_detections_index])
+        self.__create_new_well_tracked_objects(
+            detections[scor_unassigned_detections_index], current_frame_step=current_frame_step
+        )
 
     def __process_scea(
         self, detections: List[DetectionState]
@@ -172,8 +173,11 @@ class Tracker:
         )
 
     def __process_scor(
-        self, unassigned_detections: List[DetectionState]
+        self, unassigned_detection_index: List[int], detections: List[DetectionState]
     ) -> Tuple[List[int], List[int], List[int]]:
+        if len(self.__missing_indexes) == 0:
+            return np.array([]), np.array([]), unassigned_detection_index
+        unassigned_detections = detections[unassigned_detection_index]
         missing_objects = self.__object_states[self.__missing_indexes]
         updated_objects = self.__object_states[self.__well_tracked_indexes]
         assignment_matrix = scor.best_assignment(
@@ -182,11 +186,18 @@ class Tracker:
             updated_objects=updated_objects,
             default_cost_d0=self.__scor_config.default_cost_d0,
         )
-        tracked_object_indexes, assigned_detection_indexes = np.where(assignment_matrix == 1)
+        tracked_object_indexes, relative_assigned_detection_indexes = np.where(
+            assignment_matrix == 1
+        )
+        assigned_detection_indexes = unassigned_detection_index[relative_assigned_detection_indexes]
 
         actual_tracked_object_index = self.__missing_indexes[tracked_object_indexes]
 
-        unassigned_detections_index = scea.get_missing_detections(assignment_matrix)
+        relative_unassigned_detections_index = scea.get_missing_detections(assignment_matrix)
+        unassigned_detection_index = unassigned_detection_index[
+            relative_unassigned_detections_index
+        ]
+
         relative_missing_objects_index = scea.get_missing_objects(assignment_matrix)
         missing_object_index = self.__missing_indexes[relative_missing_objects_index]
 
@@ -200,7 +211,7 @@ class Tracker:
         return (
             actual_tracked_object_index,
             assigned_detection_indexes,
-            unassigned_detections_index,
+            unassigned_detection_index,
         )
 
     def __update_object_from_assigned_detection(
@@ -238,7 +249,7 @@ class Tracker:
     ):
         # update well-tracked
         objects_from_detections = [
-            ObjectState.from_detection(detection) for detection in detections
+            ObjectState.from_detection(detections[i]) for i in assigned_detection_indexes
         ]
         for i, object_index_i in enumerate(tracked_object_indexes):
             for j, object_index_j in enumerate(tracked_object_indexes):
@@ -269,6 +280,8 @@ class Tracker:
     def __remove_missing_objects(self, current_frame_step: int):
         diff = current_frame_step - self.__last_updates
         removed_index = np.where(diff > self.__max_age)[0].flatten()
+        if len(removed_index) == 0:
+            return
         mask = np.ones(self.__object_states.shape, bool)
         mask[removed_index] = 0
 
@@ -283,8 +296,12 @@ class Tracker:
         self.__well_tracked_indexes = reset_index(self.__well_tracked_indexes, removed_index)
         self.__missing_indexes = reset_index(self.__missing_indexes, removed_index)
 
-    def __create_new_well_tracked_objects(self, unassigned_detections: List[DetectionState]):
+    def __create_new_well_tracked_objects(
+        self, unassigned_detections: List[DetectionState], current_frame_step: int
+    ):
         n_new_objects = len(unassigned_detections)
+        if n_new_objects == 0:
+            return
         new_object_states = [
             ObjectState.from_detection(detection) for detection in unassigned_detections
         ]
@@ -295,8 +312,8 @@ class Tracker:
         self.__well_tracked_indexes = np.concatenate(
             (self.__well_tracked_indexes, new_object_index)
         )
-        self.__object_states = np.concatenate((self.__object_states, new_object_states))
-        self.__object_trackers = np.concatenate((self.__object_trackers, new_object_trackers))
+        new_last_update = [current_frame_step] * n_new_objects
+        self.__last_updates = np.concatenate((self.__last_updates, new_last_update))
 
         sc_old_and_new = []
         for new_object in new_object_states:
@@ -327,6 +344,9 @@ class Tracker:
         self.__sc_trackers[-n_new_objects:, :] = sc_tracker_new
         self.__sc_trackers[:, -n_new_objects:] = np.transpose(sc_tracker_new)
 
+        self.__object_states = np.concatenate((self.__object_states, new_object_states))
+        self.__object_trackers = np.concatenate((self.__object_trackers, new_object_trackers))
+
     @property
-    def tracked_objects(self):
-        return self.__object_states[self.__well_tracked_indexes]
+    def well_tracked_objects(self) -> List[ObjectStateTracker]:
+        return self.__object_trackers[self.__well_tracked_indexes]
