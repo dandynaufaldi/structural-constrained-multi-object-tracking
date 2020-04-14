@@ -2,7 +2,6 @@ import math
 from typing import List
 
 import numpy as np
-from numba import jit
 
 from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
 
@@ -55,7 +54,6 @@ def calculate_fs(
     return np.array(fs_matrix)
 
 
-@jit
 def iou(bb_test: np.ndarray, bb_gt: np.ndarray) -> float:
     """
     Computes IUO between two bboxes in the form [x1,y1,x2,y2]
@@ -110,7 +108,8 @@ def f_c(
     s_jk[2:] = s_jk[:2] + s_jk[2:]
 
     iou_score = iou(s_jk, det_q)
-    iou_score = max(iou_score, 1)
+    if iou_score == 0.0:
+        return np.inf
     cost = -np.log(iou_score)
     return cost
 
@@ -133,7 +132,8 @@ def f_r(
     s_i_gamma[2:] = s_i_gamma[:2] + s_i_gamma[2:]
 
     iou_score = iou(s_i_gamma, det_q)
-    iou_score = max(iou_score, 1)
+    if iou_score == 0.0:
+        return np.inf
     cost = -np.log(iou_score)
     return cost
 
