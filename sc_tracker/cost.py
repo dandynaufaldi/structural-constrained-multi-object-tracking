@@ -54,7 +54,7 @@ def calculate_fs(
     return np.array(fs_matrix)
 
 
-def iou(bb_test: List, bb_gt: List) -> float:
+def iou(bb_test: List[float], bb_gt: List[float]) -> float:
     """
     Computes IUO between two bboxes in the form [x1,y1,x2,y2]
     """
@@ -79,17 +79,12 @@ def f_s(object_state: ObjectState, detection_state: DetectionState) -> float:
     return -1 * math.log(1 - h - w)
 
 
-def get_histogram(img: np.ndarray, bins: int = 16) -> np.ndarray:
-    histogram, _ = np.histogram(img, bins=bins)
-    return histogram
-
-
 def f_a(object_state: ObjectState, detection_state: DetectionState) -> float:
     hist_obj = object_state.histogram
     hist_det = detection_state.histogram
     root = np.sqrt(hist_obj * hist_det)
     summation = root.sum()
-    return -np.log(summation)
+    return -math.log(summation)
 
 
 def f_c(
@@ -98,12 +93,9 @@ def f_c(
     detection_k: DetectionState,
     detection_q: DetectionState,
 ) -> float:
-    s_jk = [
-        detection_k.x - object_state.width / 2 + sc_ij.delta_x,
-        detection_k.y - object_state.height / 2 + sc_ij.delta_y,
-        detection_k.x + sc_ij.delta_x + object_state.width / 2,
-        detection_k.y + sc_ij.delta_y + object_state.height / 2,
-    ]
+    x = detection_k.x - detection_k.width / 2 + sc_ij.delta_x
+    y = detection_k.y - detection_k.height / 2 + sc_ij.delta_y
+    s_jk = [x, y, x + object_state.width, y + object_state.height]
 
     det_q = [
         detection_q.x - detection_q.width / 2,
@@ -122,26 +114,20 @@ def f_c(
 def f_r(
     object_state: ObjectState, detection_state: DetectionState, match_gamma: ObjectState
 ) -> float:
-    s_i_gamma_base = np.array([match_gamma.x, match_gamma.y, 0, 0])
     sc_object_gamma = StructuralConstraint.create(object_state, match_gamma)
-    s_i_gamma_add = np.array(
-        [sc_object_gamma.delta_x, sc_object_gamma.delta_y, object_state.width, object_state.height]
-    )
-    s_i_gamma = s_i_gamma_base + s_i_gamma_add
+    x = match_gamma.x - match_gamma.width / 2 + sc_object_gamma.delta_x
+    y = match_gamma.y - match_gamma.height / 2 + sc_object_gamma.delta_y
+    s_i_gamma = [x, y, x + object_state.width, y + object_state.height]
 
-    # convert to [x1, y1, x2, y2]
-    det_q = np.array(
-        [detection_state.x, detection_state.y, detection_state.width, detection_state.height]
-    )
-    det_q[2:] = det_q[:2] + det_q[2:]
-    s_i_gamma[2:] = s_i_gamma[:2] + s_i_gamma[2:]
+    det_q = [
+        detection_state.x - detection_state.width / 2,
+        detection_state.y - detection_state.height / 2,
+        detection_state.x + detection_state.width / 2,
+        detection_state.y + detection_state.height / 2,
+    ]
 
     iou_score = iou(s_i_gamma, det_q)
     if iou_score == 0.0:
         return np.inf
-    cost = -np.log(iou_score)
+    cost = -math.log(iou_score)
     return cost
-
-
-if __name__ == "__main__":
-    pass
