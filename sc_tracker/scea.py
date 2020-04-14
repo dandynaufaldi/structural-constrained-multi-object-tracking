@@ -198,7 +198,7 @@ def best_assignment(
 
         # check for same assignment
         intersection_column_mask = np.logical_and(mask_column, mask_global_column)
-        if np.sum(intersection_column_mask) > 0:
+        if intersection_column_mask.sum() > 0:
             intersection_index = np.where(intersection_column_mask == 1)[0]
             for intersection in intersection_index:
                 global_assignment_cost = np.min(assignment_cost[:, intersection])

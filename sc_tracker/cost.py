@@ -88,7 +88,7 @@ def f_a(object_state: ObjectState, detection_state: DetectionState) -> float:
     hist_obj = object_state.histogram
     hist_det = detection_state.histogram
     root = np.sqrt(hist_obj * hist_det)
-    summation = np.sum(root)
+    summation = root.sum()
     return -np.log(summation)
 
 
