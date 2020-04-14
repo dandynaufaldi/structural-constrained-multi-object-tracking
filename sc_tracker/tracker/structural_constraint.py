@@ -74,7 +74,7 @@ class StructuralConstraintTracker:
 
     def __set_state(self):
         kf_x = self.kf.x
-        structural_constraint = StructuralConstraint.create(
+        structural_constraint = StructuralConstraint(
             delta_x=kf_x[self.INDEX_X],
             delta_y=kf_x[self.INDEX_Y],
             delta_v_x=kf_x[self.INDEX_V_X],
