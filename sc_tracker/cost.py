@@ -54,16 +54,16 @@ def calculate_fs(
     return np.array(fs_matrix)
 
 
-def iou(bb_test: np.ndarray, bb_gt: np.ndarray) -> float:
+def iou(bb_test: List, bb_gt: List) -> float:
     """
     Computes IUO between two bboxes in the form [x1,y1,x2,y2]
     """
-    xx1 = np.maximum(bb_test[0], bb_gt[0])
-    yy1 = np.maximum(bb_test[1], bb_gt[1])
-    xx2 = np.minimum(bb_test[2], bb_gt[2])
-    yy2 = np.minimum(bb_test[3], bb_gt[3])
-    w = np.maximum(0.0, xx2 - xx1)
-    h = np.maximum(0.0, yy2 - yy1)
+    xx1 = max(bb_test[0], bb_gt[0])
+    yy1 = max(bb_test[1], bb_gt[1])
+    xx2 = min(bb_test[2], bb_gt[2])
+    yy2 = min(bb_test[3], bb_gt[3])
+    w = max(0.0, xx2 - xx1)
+    h = max(0.0, yy2 - yy1)
     wh = w * h
     bbox1 = (bb_test[2] - bb_test[0]) * (bb_test[3] - bb_test[1])
     bbox2 = (bb_gt[2] - bb_gt[0]) * (bb_gt[3] - bb_gt[1])
@@ -98,19 +98,24 @@ def f_c(
     detection_k: DetectionState,
     detection_q: DetectionState,
 ) -> float:
-    s_jk_base = np.array([detection_k.x, detection_k.y, 0, 0])
-    s_jk_add = np.array([sc_ij.delta_x, sc_ij.delta_y, object_state.width, object_state.height])
-    s_jk = s_jk_base + s_jk_add
+    s_jk = [
+        detection_k.x - object_state.width / 2 + sc_ij.delta_x,
+        detection_k.y - object_state.height / 2 + sc_ij.delta_y,
+        detection_k.x + sc_ij.delta_x + object_state.width / 2,
+        detection_k.y + sc_ij.delta_y + object_state.height / 2,
+    ]
 
-    # convert to [x1, y1, x2, y2]
-    det_q = np.array([detection_q.x, detection_q.y, detection_q.width, detection_q.height])
-    det_q[2:] = det_q[:2] + det_q[2:]
-    s_jk[2:] = s_jk[:2] + s_jk[2:]
+    det_q = [
+        detection_q.x - detection_q.width / 2,
+        detection_q.y - detection_q.height / 2,
+        detection_q.x + detection_q.width / 2,
+        detection_q.y + detection_q.height / 2,
+    ]
 
     iou_score = iou(s_jk, det_q)
     if iou_score == 0.0:
         return np.inf
-    cost = -np.log(iou_score)
+    cost = -math.log(iou_score)
     return cost
 
 
