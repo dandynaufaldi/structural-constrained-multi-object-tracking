@@ -5,6 +5,8 @@ import numpy as np
 
 from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
 
+SMOOTH = 1e-10
+
 
 def calculate_structural_constraint(
     object_states: List[ObjectState],
@@ -105,8 +107,7 @@ def f_c(
     ]
 
     iou_score = iou(s_jk, det_q)
-    if iou_score == 0.0:
-        return np.inf
+    iou_score = max(iou_score, SMOOTH)
     cost = -math.log(iou_score)
     return cost
 
@@ -127,7 +128,6 @@ def f_r(
     ]
 
     iou_score = iou(s_i_gamma, det_q)
-    if iou_score == 0.0:
-        return np.inf
+    iou_score = max(iou_score, SMOOTH)
     cost = -math.log(iou_score)
     return cost
