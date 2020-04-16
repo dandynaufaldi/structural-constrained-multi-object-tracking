@@ -1,9 +1,9 @@
 import math
-from typing import List
+from typing import List, Tuple, Union
 
 import numpy as np
 
-from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
+from sc_tracker.state import DetectionState, Index, ObjectState, StructuralConstraint
 
 SMOOTH = 1e-10
 
@@ -73,6 +73,25 @@ def iou(bb_test: List[float], bb_gt: List[float]) -> float:
     return o
 
 
+def iou_vec(
+    bb_test: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    bb_gt: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+):
+    # bb [x1, y1, x2, y2]
+    xx1 = np.maximum(bb_test[:, 0], bb_gt[:, 0])
+    yy1 = np.maximum(bb_test[:, 1], bb_gt[:, 1])
+    xx2 = np.minimum(bb_test[:, 2], bb_gt[:, 2])
+    yy2 = np.minimum(bb_test[:, 3], bb_gt[:, 3])
+    zeros = np.zeros_like(xx1)
+    w = np.maximum(zeros, xx2 - xx1)
+    h = np.maximum(zeros, yy2 - yy1)
+    wh = w * h
+    bbox1 = (bb_test[:, 2] - bb_test[:, 0]) * (bb_test[:, 3] - bb_test[:, 1])
+    bbox2 = (bb_gt[:, 2] - bb_gt[:, 0]) * (bb_gt[:, 3] - bb_gt[:, 1])
+    o = wh / (bbox1 + bbox2 - wh)
+    return o
+
+
 def f_s(object_state: ObjectState, detection_state: DetectionState) -> float:
     h_obj, w_obj = object_state.height, object_state.width
     h_det, w_det = detection_state.height, detection_state.width
@@ -81,12 +100,35 @@ def f_s(object_state: ObjectState, detection_state: DetectionState) -> float:
     return -1 * math.log(1 - h - w)
 
 
+def f_s_vec(
+    obj: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
+    det: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+) -> Union[np.ndarray, List[float]]:
+    # obj [x, y, w, h, v_x, v_y]
+    # det [x, y, w, h]
+    h_obj = obj[:, Index.INDEX_H]
+    h_det = det[:, Index.INDEX_H]
+    w_obj = obj[:, Index.INDEX_W]
+    w_det = det[:, Index.INDEX_W]
+    h = np.abs(h_obj - h_det) / (2 * (h_obj + h_det))
+    w = np.abs(w_obj - w_det) / (2 * (w_obj + w_det))
+    return -1 * np.log(1 - h - w)
+
+
 def f_a(object_state: ObjectState, detection_state: DetectionState) -> float:
     hist_obj = object_state.histogram
     hist_det = detection_state.histogram
     root = np.sqrt(hist_obj * hist_det)
     summation = root.sum()
     return -math.log(summation)
+
+
+def f_a_vec(
+    hist_obj: Union[np.ndarray, List[List[float]]], hist_det: Union[np.ndarray, List[List[float]]]
+) -> Union[np.ndarray, List[float]]:
+    root = np.sqrt(hist_obj * hist_det)
+    summation = root.sum(axis=1)
+    return -np.log(summation)
 
 
 def f_c(
@@ -109,6 +151,33 @@ def f_c(
     iou_score = iou(s_jk, det_q)
     iou_score = max(iou_score, SMOOTH)
     cost = -math.log(iou_score)
+    return cost
+
+
+def f_c_vec(
+    obj: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
+    det_q: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    det_k: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    sc_ij: Union[np.ndarray, List[Tuple[float, float]]],
+) -> Union[np.ndarray, List[float]]:
+    # obj [x, y, w, h, v_x, v_y]
+    # det [x, y, w, h]
+    # sc_ij [delta_x, delta_y, delta_vx, delta_vy]
+    x = det_k[:, Index.INDEX_X] - det_k[:, Index.INDEX_W] / 2 + sc_ij[:, Index.INDEX_DX]
+    y = det_k[:, Index.INDEX_Y] - det_k[:, Index.INDEX_H] / 2 + sc_ij[:, Index.INDEX_DY]
+    s_jk = np.array([x, y, x + obj[:, Index.INDEX_W], y + obj[:, Index.INDEX_H]]).T
+
+    det_q_x = det_q[:, Index.INDEX_X] - det_q[:, Index.INDEX_W]
+    det_q_y = det_q[:, Index.INDEX_Y] - det_q[:, Index.INDEX_H]
+    det_q_xyxy = np.array(
+        [det_q_x, det_q_y, det_q_x + det_q[:, Index.INDEX_W], det_q_y + det_q[:, Index.INDEX_H]]
+    ).T
+
+    iou_score = iou_vec(s_jk, det_q_xyxy)
+    cost = np.empty_like(iou_score)
+    mask = iou_score == 0.0
+    cost[mask] = SMOOTH
+    cost[~mask] = -np.log(iou_score[~mask])
     return cost
 
 

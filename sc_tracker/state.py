@@ -1,5 +1,20 @@
+from typing import Tuple
+
 import numpy as np
 from dataclasses import asdict, dataclass
+
+
+class Index:
+    INDEX_X = 0
+    INDEX_Y = 1
+    INDEX_W = 2
+    INDEX_H = 3
+    INDEX_VX = 4
+    INDEX_VY = 5
+    INDEX_DX = 0
+    INDEX_DY = 1
+    INDEX_DVX = 2
+    INDEX_DVY = 3
 
 
 @dataclass
@@ -38,6 +53,9 @@ class DetectionState:
             x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=histogram,
         )
 
+    def state(self) -> Tuple[float, float, float, float]:
+        return (self.x, self.y, self.width, self.height)
+
 
 @dataclass
 class ObjectState:
@@ -75,6 +93,9 @@ class ObjectState:
         self.frame_step = object_state.frame_step
         self.histogram = object_state.histogram.copy()
 
+    def state(self) -> Tuple[float, float, float, float, float, float]:
+        return (self.x, self.y, self.width, self.height, self.v_x, self.v_y)
+
 
 @dataclass
 class StructuralConstraint:
@@ -105,3 +126,6 @@ class StructuralConstraint:
         self.delta_y = sc.delta_y
         self.delta_v_x = sc.delta_v_x
         self.delta_v_y = sc.delta_v_y
+
+    def state(self) -> Tuple[float, float, float, float]:
+        return (self.delta_x, self.delta_y, self.delta_v_x, self.delta_v_y)
