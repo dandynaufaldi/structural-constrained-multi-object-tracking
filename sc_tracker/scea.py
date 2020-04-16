@@ -2,7 +2,7 @@ from typing import List, NamedTuple, Tuple, Union
 
 import numpy as np
 
-from sc_tracker.cost import calculate_fs, f_a, f_c, f_s
+from sc_tracker.cost import calculate_fs, f_a, f_a_vec, f_c, f_c_vec, f_s, f_s_vec
 from sc_tracker.partition import gating, possible_assignment_generator, subgroup_by_cluster
 from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
 
@@ -66,10 +66,121 @@ def cost_by_anchor(
     return cost_value
 
 
+def cost_by_anchor_vec(
+    anchor_object_index: int,
+    subgroup_member: List[int],
+    possible_assignment: List[int],
+    structural_constraints: List[List[StructuralConstraint]],
+    object_states: List[ObjectState],
+    detection_states: List[DetectionState],
+    default_cost_d0: float = 4.0,
+) -> float:
+    """Given a assignment permutation and anchor object, calculate the assignment cost
+
+    Args:
+        anchor_object_index (int): object index used as anchor, 0 based according current subgroup
+        subgroup_member (List[int]): object indices off current subgroup
+        possible_assignment (List[int]): assignment list from assignment generator
+        structural_constraints (List[List[StructuralConstraint]]): 2D array of structural constraint
+        object_states (List[ObjectState]): list of object states
+        detection_states (List[DetectionState]): list of detection states
+        default_cost_d0 (float, optional): Default cost value for case detection 0. Defaults to 4.0.
+
+    Returns:
+        float: cost of assignment for given anchor
+    """
+    # subgroup member, object start from 0, dets start from 1 (case d_0)
+    object_index = subgroup_member[anchor_object_index]
+    object_anchor = object_states[object_index]
+    detection_index = possible_assignment[anchor_object_index] - 1
+    detection_anchor = detection_states[detection_index]
+
+    # anchor_object = []
+    # anchor_detection = []
+    # anchor_obj_hist = []
+    # anchor_det_hist = []
+
+    non_anchor_object = []
+    non_anchor_det_q = []
+    non_anchor_det_k = []
+    non_anchor_obj_hist = []
+    non_anchor_det_q_hist = []
+    non_anchor_sc = []
+    total_cost_d0 = 0.0
+    cost_anchor = 0.0
+    for obj_index, det_index in enumerate(possible_assignment):
+        real_obj_index = subgroup_member[obj_index]
+        real_det_index = det_index - 1
+
+        # object index is equal to anchor index
+        if real_obj_index == object_index:
+            cost_anchor += __cost_anchor(object_anchor, detection_anchor)
+            # anchor_object.append(object_anchor.state())
+            # anchor_obj_hist.append(object_anchor.histogram)
+            # anchor_detection.append(detection_anchor.state())
+            # anchor_det_hist.append(detection_anchor.histogram)
+        else:
+            object_state = object_states[real_obj_index]
+            detection_state = detection_states[real_det_index]
+            # case for d0
+            if real_det_index == -1:
+                total_cost_d0 += default_cost_d0
+            else:
+                non_anchor_object.append(object_state.state())
+                non_anchor_obj_hist.append(object_state.histogram)
+                non_anchor_det_q.append(detection_state.state())
+                non_anchor_det_q_hist.append(detection_state.histogram)
+                non_anchor_det_k.append(detection_anchor.state())
+                non_anchor_sc.append(structural_constraints[object_index][real_obj_index].state())
+
+    # anchor_object = np.array(anchor_object)
+    # anchor_detection = np.array(anchor_detection)
+    # anchor_obj_hist = np.array(anchor_obj_hist)
+    # anchor_det_hist = np.array(anchor_det_hist)
+
+    non_anchor_object = np.array(non_anchor_object)
+    non_anchor_det_q = np.array(non_anchor_det_q)
+    non_anchor_det_k = np.array(non_anchor_det_k)
+    non_anchor_obj_hist = np.array(non_anchor_obj_hist)
+    non_anchor_det_q_hist = np.array(non_anchor_det_q_hist)
+    non_anchor_sc = np.array(non_anchor_sc).astype(np.float64)
+    if len(non_anchor_sc.shape) == 3:
+        non_anchor_sc = non_anchor_sc.squeeze(2)
+
+    total_cost = total_cost_d0 + cost_anchor
+    # if len(anchor_object) != 0:
+    #     cost_anchor = __cost_anchor_vec(
+    #         anchor_object, anchor_detection, anchor_obj_hist, anchor_det_hist
+    #     )
+    #     total_cost += cost_anchor
+    if len(non_anchor_object) != 0:
+        cost_non_anchor = __cost_non_anchor_vec(
+            non_anchor_object,
+            non_anchor_det_k,
+            non_anchor_det_q,
+            non_anchor_obj_hist,
+            non_anchor_det_q_hist,
+            non_anchor_sc,
+        )
+        total_cost += cost_non_anchor
+    return total_cost
+
+
 def __cost_anchor(object_state: ObjectState, detection_state: DetectionState) -> float:
     cost_fs = f_s(object_state, detection_state)
     cost_fa = f_a(object_state, detection_state)
     return cost_fs + cost_fa
+
+
+def __cost_anchor_vec(
+    object_state: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
+    detection_state: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    object_hist: Union[np.ndarray, List[List[float]]],
+    detection_hist: Union[np.ndarray, List[List[float]]],
+) -> float:
+    cost_fs = f_s_vec(object_state, detection_state)
+    cost_fa = f_a_vec(object_hist, detection_hist)
+    return (cost_fs + cost_fa).sum()
 
 
 def __cost_non_anchor(
@@ -82,6 +193,20 @@ def __cost_non_anchor(
     cost_fa = f_a(object_state, detection_q)
     cost_fc = f_c(object_state, sc_ij, detection_k, detection_q)
     return cost_fs + cost_fa + cost_fc
+
+
+def __cost_non_anchor_vec(
+    object_state: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
+    detection_k: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    detection_q: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    object_hist: Union[np.ndarray, List[List[float]]],
+    detection_q_hist: Union[np.ndarray, List[List[float]]],
+    sc_ij: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+):
+    cost_fs = f_s_vec(object_state, detection_q)
+    cost_fa = f_a_vec(object_hist, detection_q_hist)
+    cost_fc = f_c_vec(object_state, detection_q, detection_k, sc_ij)
+    return (cost_fs + cost_fa + cost_fc).sum()
 
 
 def cost_by_possible_assignment(
@@ -98,7 +223,7 @@ def cost_by_possible_assignment(
         if detection_index == 0:
             continue
         anchor_count += 1
-        cost += cost_by_anchor(
+        cost += cost_by_anchor_vec(
             anchor_object_index=object_index,
             subgroup_member=subgroup,
             possible_assignment=possible_assignment,
