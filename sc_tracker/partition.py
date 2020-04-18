@@ -131,3 +131,35 @@ def possible_assignment_generator(
                     pick = picked.copy()
                     pick.add(i)
                     stack.append((index + 1, arr, pick))
+
+
+def possible_assignment_generator_v2(
+    gated_assignment_matrix: np.ndarray, subgroup: List[int]
+) -> List[List[int]]:
+    """Permute all possible assignment given assignment matrix from gating and subgroup
+
+    Args:
+        gated_assignment_matrix (np.ndarray): assignment matrix from gating process
+        subgroup (List[int]): subgroup contains index number of object
+
+    Returns:
+        List[List[int]]: assignment list
+        Assignment list has lenth same as current subgroup being used and contain detection index
+        assigned to an object.
+        Example:
+        Subgroup = [2,3,4], which is object with index 2,3, and 4 (0 based)
+        Assignment list = [0, 1, 0], which map object 2 to detection 0, object 3 to detection 1
+        and object 4 to detection 0. Detection 0 for mis-detected
+
+    Reference:
+        https://stackoverflow.com/a/35608701/13161170
+    """
+    assignment_matrix = __assignment_matrix_for_subgroup(gated_assignment_matrix, subgroup)
+    n_object = len(subgroup)
+    possible_assignment = [[] for _ in range(n_object)]
+    rows, cols = assignment_matrix.nonzero()
+    for object_index, detection_index in zip(rows, cols):
+        possible_assignment[object_index].append(detection_index)
+    possible_assignment_combination = np.array(np.meshgrid(*possible_assignment))
+    possible_assignment_combination = possible_assignment_combination.T.reshape(-1, n_object)
+    return possible_assignment_combination.tolist()
