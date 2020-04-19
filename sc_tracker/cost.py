@@ -3,7 +3,16 @@ from typing import List, Tuple, Union
 
 import numpy as np
 
-from sc_tracker.state import DetectionState, Index, ObjectState, StructuralConstraint
+from sc_tracker.state import (
+    DetectionState,
+    DetectionStateData,
+    HistogramData,
+    Index,
+    ObjectState,
+    ObjectStateData,
+    StructuralConstraint,
+    StructuralConstraintData,
+)
 
 SMOOTH = 1e-10
 
@@ -101,8 +110,7 @@ def f_s(object_state: ObjectState, detection_state: DetectionState) -> float:
 
 
 def f_s_vec(
-    obj: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
-    det: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    obj: Union[np.ndarray, List[ObjectStateData]], det: Union[np.ndarray, List[DetectionStateData]],
 ) -> Union[np.ndarray, List[float]]:
     # obj [x, y, w, h, v_x, v_y]
     # det [x, y, w, h]
@@ -124,7 +132,8 @@ def f_a(object_state: ObjectState, detection_state: DetectionState) -> float:
 
 
 def f_a_vec(
-    hist_obj: Union[np.ndarray, List[List[float]]], hist_det: Union[np.ndarray, List[List[float]]]
+    hist_obj: Union[np.ndarray, List[HistogramData]],
+    hist_det: Union[np.ndarray, List[HistogramData]],
 ) -> Union[np.ndarray, List[float]]:
     root = np.sqrt(hist_obj * hist_det)
     summation = root.sum(axis=1)
@@ -155,10 +164,10 @@ def f_c(
 
 
 def f_c_vec(
-    obj: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
-    det_q: Union[np.ndarray, List[Tuple[float, float, float, float]]],
-    det_k: Union[np.ndarray, List[Tuple[float, float, float, float]]],
-    sc_ij: Union[np.ndarray, List[Tuple[float, float]]],
+    obj: Union[np.ndarray, List[ObjectStateData]],
+    det_q: Union[np.ndarray, List[DetectionStateData]],
+    det_k: Union[np.ndarray, List[DetectionStateData]],
+    sc_ij: Union[np.ndarray, List[StructuralConstraintData]],
 ) -> Union[np.ndarray, List[float]]:
     # obj [x, y, w, h, v_x, v_y]
     # det [x, y, w, h]

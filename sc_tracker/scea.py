@@ -4,7 +4,15 @@ import numpy as np
 
 from sc_tracker.cost import calculate_fs, f_a, f_a_vec, f_c, f_c_vec, f_s, f_s_vec
 from sc_tracker.partition import gating, possible_assignment_generator, subgroup_by_cluster
-from sc_tracker.state import DetectionState, ObjectState, StructuralConstraint
+from sc_tracker.state import (
+    DetectionState,
+    DetectionStateData,
+    HistogramData,
+    ObjectState,
+    ObjectStateData,
+    StructuralConstraint,
+    StructuralConstraintData,
+)
 
 
 class ConfigSCEA(NamedTuple):
@@ -173,10 +181,10 @@ def __cost_anchor(object_state: ObjectState, detection_state: DetectionState) ->
 
 
 def __cost_anchor_vec(
-    object_state: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
-    detection_state: Union[np.ndarray, List[Tuple[float, float, float, float]]],
-    object_hist: Union[np.ndarray, List[List[float]]],
-    detection_hist: Union[np.ndarray, List[List[float]]],
+    object_state: Union[np.ndarray, List[ObjectStateData]],
+    detection_state: Union[np.ndarray, List[DetectionStateData]],
+    object_hist: Union[np.ndarray, List[HistogramData]],
+    detection_hist: Union[np.ndarray, List[HistogramData]],
 ) -> float:
     cost_fs = f_s_vec(object_state, detection_state)
     cost_fa = f_a_vec(object_hist, detection_hist)
@@ -196,12 +204,12 @@ def __cost_non_anchor(
 
 
 def __cost_non_anchor_vec(
-    object_state: Union[np.ndarray, List[Tuple[float, float, float, float, float, float]]],
-    detection_k: Union[np.ndarray, List[Tuple[float, float, float, float]]],
-    detection_q: Union[np.ndarray, List[Tuple[float, float, float, float]]],
-    object_hist: Union[np.ndarray, List[List[float]]],
-    detection_q_hist: Union[np.ndarray, List[List[float]]],
-    sc_ij: Union[np.ndarray, List[Tuple[float, float, float, float]]],
+    object_state: Union[np.ndarray, List[ObjectStateData]],
+    detection_k: Union[np.ndarray, List[DetectionStateData]],
+    detection_q: Union[np.ndarray, List[DetectionStateData]],
+    object_hist: Union[np.ndarray, List[HistogramData]],
+    detection_q_hist: Union[np.ndarray, List[HistogramData]],
+    sc_ij: Union[np.ndarray, List[StructuralConstraintData]],
 ):
     cost_fs = f_s_vec(object_state, detection_q)
     cost_fa = f_a_vec(object_hist, detection_q_hist)

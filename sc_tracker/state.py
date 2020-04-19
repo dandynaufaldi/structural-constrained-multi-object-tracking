@@ -1,7 +1,12 @@
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
 from dataclasses import asdict, dataclass
+
+ObjectStateData = Tuple[float, float, float, float, float, float]
+DetectionStateData = Tuple[float, float, float, float]
+StructuralConstraintData = Tuple[float, float, float, float]
+HistogramData = List[float]
 
 
 class Index:
