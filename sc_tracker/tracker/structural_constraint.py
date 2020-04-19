@@ -73,7 +73,7 @@ class StructuralConstraintTracker:
         self.kf.x = np.dot(self.kf.F, column_vector_x)
 
     def __set_state(self):
-        kf_x = self.kf.x
+        kf_x = self.kf.x.squeeze()
         structural_constraint = StructuralConstraint(
             delta_x=kf_x[self.INDEX_X],
             delta_y=kf_x[self.INDEX_Y],
