@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import numpy as np
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 
 ObjectStateData = Tuple[float, float, float, float, float, float]
 DetectionStateData = Tuple[float, float, float, float]
@@ -30,6 +30,10 @@ class DetectionState:
     height: float
     frame_step: int
     histogram: np.ndarray
+    internal_state: DetectionStateData = field(init=False)
+
+    def __post_init__(self):
+        self.__set_state()
 
     @staticmethod
     def from_bbox(
@@ -58,8 +62,11 @@ class DetectionState:
             x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=histogram,
         )
 
-    def state(self) -> Tuple[float, float, float, float]:
-        return (self.x, self.y, self.width, self.height)
+    def __set_state(self):
+        self.internal_state = (self.x, self.y, self.width, self.height)
+
+    def state(self) -> DetectionStateData:
+        return self.internal_state
 
 
 @dataclass
@@ -72,10 +79,16 @@ class ObjectState:
     histogram: np.ndarray
     v_x: float = 0.0
     v_y: float = 0.0
+    internal_state: ObjectStateData = field(init=False)
+
+    def __post_init__(self):
+        self.__set_state()
 
     @staticmethod
     def from_detection(detection: DetectionState) -> "ObjectState":
-        return ObjectState(**asdict(detection))
+        attrs = asdict(detection)
+        attrs.pop("internal_state", None)
+        return ObjectState(**attrs)
 
     def update_from_detection(self, detection: DetectionState):
         delta_time = detection.frame_step - self.frame_step
@@ -87,6 +100,7 @@ class ObjectState:
         self.height = detection.height
         self.frame_step = detection.frame_step
         self.histogram = detection.histogram.copy()
+        self.__set_state()
 
     def update_from_object_state(self, object_state: "ObjectState"):
         self.x = object_state.x
@@ -97,9 +111,13 @@ class ObjectState:
         self.height = object_state.width
         self.frame_step = object_state.frame_step
         self.histogram = object_state.histogram.copy()
+        self.__set_state()
 
-    def state(self) -> Tuple[float, float, float, float, float, float]:
-        return (self.x, self.y, self.width, self.height, self.v_x, self.v_y)
+    def __set_state(self):
+        self.internal_state = (self.x, self.y, self.width, self.height, self.v_x, self.v_y)
+
+    def state(self) -> ObjectStateData:
+        return self.internal_state
 
 
 @dataclass
@@ -108,12 +126,14 @@ class StructuralConstraint:
     delta_y: float
     delta_v_x: float
     delta_v_y: float
+    internal_state: StructuralConstraintData = field(init=False)
 
     def __init__(self, delta_x: float, delta_y: float, delta_v_x: float, delta_v_y: float):
         self.delta_x = delta_x
         self.delta_y = delta_y
         self.delta_v_x = delta_v_x
         self.delta_v_y = delta_v_y
+        self.__set_state()
 
     @staticmethod
     def create(first_object: ObjectState, second_object: ObjectState) -> "StructuralConstraint":
@@ -131,6 +151,10 @@ class StructuralConstraint:
         self.delta_y = sc.delta_y
         self.delta_v_x = sc.delta_v_x
         self.delta_v_y = sc.delta_v_y
+        self.__set_state()
 
-    def state(self) -> Tuple[float, float, float, float]:
-        return (self.delta_x, self.delta_y, self.delta_v_x, self.delta_v_y)
+    def __set_state(self):
+        self.internal_state = (self.delta_x, self.delta_y, self.delta_v_x, self.delta_v_y)
+
+    def state(self) -> StructuralConstraintData:
+        return self.internal_state
