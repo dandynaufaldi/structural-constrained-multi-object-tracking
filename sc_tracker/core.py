@@ -175,7 +175,7 @@ class Tracker:
     def __process_scor(
         self, unassigned_detection_index: List[int], detections: List[DetectionState]
     ) -> Tuple[List[int], List[int], List[int]]:
-        if len(self.__missing_indexes) == 0:
+        if len(self.__missing_indexes) == 0 or len(self.__well_tracked_indexes) == 0:
             return np.array([]), np.array([]), unassigned_detection_index
         unassigned_detections = detections[unassigned_detection_index]
         missing_objects = self.__object_states[self.__missing_indexes]
