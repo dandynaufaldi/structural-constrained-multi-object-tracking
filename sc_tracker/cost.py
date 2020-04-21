@@ -146,8 +146,8 @@ def f_c(
     detection_k: DetectionState,
     detection_q: DetectionState,
 ) -> float:
-    x = detection_k.x - detection_k.width / 2 + sc_ij.delta_x
-    y = detection_k.y - detection_k.height / 2 + sc_ij.delta_y
+    x = detection_k.x - detection_k.width / 2 - sc_ij.delta_x
+    y = detection_k.y - detection_k.height / 2 - sc_ij.delta_y
     s_jk = [x, y, x + object_state.width, y + object_state.height]
 
     det_q = [
@@ -172,8 +172,8 @@ def f_c_vec(
     # obj [x, y, w, h, v_x, v_y]
     # det [x, y, w, h]
     # sc_ij [delta_x, delta_y, delta_vx, delta_vy]
-    x = det_k[:, Index.INDEX_X] - det_k[:, Index.INDEX_W] / 2 + sc_ij[:, Index.INDEX_DX]
-    y = det_k[:, Index.INDEX_Y] - det_k[:, Index.INDEX_H] / 2 + sc_ij[:, Index.INDEX_DY]
+    x = det_k[:, Index.INDEX_X] - det_k[:, Index.INDEX_W] / 2 - sc_ij[:, Index.INDEX_DX]
+    y = det_k[:, Index.INDEX_Y] - det_k[:, Index.INDEX_H] / 2 - sc_ij[:, Index.INDEX_DY]
     s_jk = np.array([x, y, x + obj[:, Index.INDEX_W], y + obj[:, Index.INDEX_H]]).T
 
     det_q_x = det_q[:, Index.INDEX_X] - det_q[:, Index.INDEX_W]
