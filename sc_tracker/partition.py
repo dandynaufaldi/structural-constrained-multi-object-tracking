@@ -162,4 +162,21 @@ def possible_assignment_generator_v2(
         possible_assignment[object_index].append(detection_index)
     possible_assignment_combination = np.array(np.meshgrid(*possible_assignment))
     possible_assignment_combination = possible_assignment_combination.T.reshape(-1, n_object)
+    possible_assignment_combination = __remove_duplicate_row(
+        possible_assignment_combination, excludes=[0]
+    )
     return possible_assignment_combination.tolist()
+
+
+def __remove_duplicate_row(matrix: np.ndarray, excludes: List[int] = None) -> np.ndarray:
+    """Reference: https://stackoverflow.com/a/45136720/13161170"""
+    sorted_matrix = np.sort(matrix, axis=-1)
+    mask = sorted_matrix[..., 1:] != sorted_matrix[..., :-1]
+    if excludes is not None:
+        exclude = excludes[0]
+        exclude_mask = (sorted_matrix[..., 1:] == exclude) & (sorted_matrix[..., :-1] == exclude)
+        for exclude in excludes[1:]:
+            temp_mask = (sorted_matrix[..., 1:] == exclude) & (sorted_matrix[..., :-1] == exclude)
+            exclude_mask |= temp_mask
+        mask |= exclude_mask
+    return matrix[mask.all(-1)]
