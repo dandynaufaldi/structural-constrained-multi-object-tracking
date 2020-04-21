@@ -45,6 +45,8 @@ class DetectionState:
         full_image: np.ndarray,
         n_bins: int = 8,
     ) -> "DetectionState":
+        left = int(max(left, 0))
+        top = int(max(top, 0))
         x = left + width / 2
         y = top + height / 2
         histogram = None
@@ -54,7 +56,7 @@ class DetectionState:
                 "full_image should be in RGB/BGR with shape (height, width, 3) "
                 f"but found {shape}"
             )
-            image = full_image[top : top + height, left : left + width]
+            image = full_image[top : top + int(height), left : left + int(width)]
             graysacle = image.mean(axis=2)
             bins = np.arange(n_bins + 1) * (256 // n_bins)
             histogram, _ = np.histogram(graysacle, bins=bins)
