@@ -75,9 +75,9 @@ class ObjectStateTracker:
     def update(self, detection: DetectionState):
         self.__update_state(detection)
         self.__update_histogram(detection)
-        self.__set_state()
 
         self.frame_step = detection.frame_step
+        self.__set_state()
         self.history.append(self.state)
 
     def __update_state(self, detection: DetectionState):
