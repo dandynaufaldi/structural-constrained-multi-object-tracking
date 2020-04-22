@@ -4,6 +4,8 @@ dataset/**/*.zip
 dataset/**/*.csv
 dataset/**/*.h5
 dataset/**/*.npy
+outputs/
+dummy/
 venv/
 env/
 /**/__pycache__/

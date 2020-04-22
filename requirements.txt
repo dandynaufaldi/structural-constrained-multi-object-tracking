@@ -1,6 +1,8 @@
+Cython==0.29.16
 dataclasses==0.7
 filterpy==1.4.5
 joblib==0.14.1
+k-means-constrained==0.3.1
 motmetrics==1.2.0
 numpy==1.18.1
 pandas==0.25.3

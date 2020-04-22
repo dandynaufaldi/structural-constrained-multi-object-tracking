@@ -3,6 +3,7 @@ from typing import Iterable, List, Set, Tuple
 
 import numpy as np
 
+from k_means_constrained import KMeansConstrained
 from sc_tracker.state import DetectionState, ObjectState
 from sklearn.cluster import KMeans
 
@@ -78,6 +79,31 @@ def subgroup_by_cluster(object_states: List[ObjectState], n_member: int = 5) -> 
     n_cluster = math.ceil(len(object_states) / n_member)
     features = [[obj.x, obj.y] for obj in object_states]
     kmeans = KMeans(n_clusters=n_cluster, random_state=42)
+    labels = kmeans.fit_predict(features)
+    groups = []
+    for label in set(labels):
+        indices = np.flatnonzero(labels == label)
+        groups.append(indices.tolist())
+    return groups
+
+
+def subgroup_by_cluster_constrained(
+    object_states: List[ObjectState], n_member: int = 5
+) -> List[List[int]]:
+    """Generate subgroup based on constrained K-means clustering on object's position
+    
+    Args:
+        object_states (List[ObjectState]): array of object states
+        n_member (int, optional): max number of member per subgroup. Default to 5.
+    
+    Returns:
+        List[List[int]]: 2D array, each row contains indices of objects that belong to same subgroup
+    """
+    n_cluster = math.ceil(len(object_states) / n_member)
+    features = [[obj.x, obj.y] for obj in object_states]
+    kmeans = KMeansConstrained(
+        n_clusters=n_cluster, size_max=min(n_member, len(object_states)), random_state=42
+    )
     labels = kmeans.fit_predict(features)
     groups = []
     for label in set(labels):

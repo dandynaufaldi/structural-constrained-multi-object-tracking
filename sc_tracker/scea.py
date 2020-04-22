@@ -7,7 +7,7 @@ from sc_tracker.partition import (
     gating,
     possible_assignment_generator,
     possible_assignment_generator_v2,
-    subgroup_by_cluster,
+    subgroup_by_cluster_constrained,
 )
 from sc_tracker.state import (
     DetectionState,
@@ -581,7 +581,7 @@ def best_assignment(
         detection_states=detection_states,
         threshold=gating_threshold,
     )
-    subgroups = subgroup_by_cluster(object_states, n_member=num_cluster_member)
+    subgroups = subgroup_by_cluster_constrained(object_states, n_member=num_cluster_member)
     n_object = len(object_states)
     n_detection = len(detection_states)
     assignment_matrix = np.zeros((n_object, n_detection), dtype="int")
