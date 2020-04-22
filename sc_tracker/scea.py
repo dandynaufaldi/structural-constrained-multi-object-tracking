@@ -500,19 +500,23 @@ def best_assignment_by_subgroup_vec(
     counter_d0 = np.array(counter_d0, dtype=np.int32)
     counter_anchor = np.array(counter_anchor, dtype=np.int32)
 
-    cost_anchor = __cost_anchor_vec(
-        object_state=anchor_objects,
-        detection_state=anchor_detections,
-        object_hist=anchor_obj_hists,
-        detection_hist=anchor_det_hists,
-    )
-
-    anchor_index, cost_anchor_reduced = __reduce_array(cost_anchor, anchor_assignment_reduce_index)
     cost_d0 = counter_d0 * default_cost_d0
 
     cost = np.zeros(len(possible_assignments))
     cost += cost_d0
-    cost[anchor_index] += cost_anchor_reduced
+
+    if len(anchor_objects) != 0:
+        cost_anchor = __cost_anchor_vec(
+            object_state=anchor_objects,
+            detection_state=anchor_detections,
+            object_hist=anchor_obj_hists,
+            detection_hist=anchor_det_hists,
+        )
+
+        anchor_index, cost_anchor_reduced = __reduce_array(
+            cost_anchor, anchor_assignment_reduce_index
+        )
+        cost[anchor_index] += cost_anchor_reduced
 
     if len(non_anchor_objects) != 0:
         cost_non_anchor = __cost_non_anchor_vec(
