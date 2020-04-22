@@ -19,7 +19,6 @@ importlib-resources==1.0.2
 isort==4.3.21
 joblib==0.14.1
 kiwisolver==1.1.0
-k-means-constrained==0.3.1
 lazy-object-proxy==1.4.3
 llvmlite==0.31.0
 matplotlib==3.2.1
@@ -53,3 +52,4 @@ virtualenv==16.7.9
 wrapt==1.11.2
 yapf==0.29.0
 zipp==2.0.1
+k-means-constrained==0.3.1
