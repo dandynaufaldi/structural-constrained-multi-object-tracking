@@ -135,6 +135,8 @@ class Tracker:
     def __process_scea(
         self, detections: List[DetectionState]
     ) -> Tuple[List[int], List[int], List[int]]:
+        if len(self.__well_tracked_indexes) == 0:
+            return np.array([]), np.array([]), np.arange(len(detections))
         object_states = self.__object_states[self.__well_tracked_indexes]
         structural_constraints = self.__structural_constraints[self.__well_tracked_indexes, :]
         structural_constraints = structural_constraints[:, self.__well_tracked_indexes]
