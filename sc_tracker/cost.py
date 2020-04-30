@@ -176,17 +176,16 @@ def f_c_vec(
     y = det_k[:, Index.INDEX_Y] - det_k[:, Index.INDEX_H] / 2 - sc_ij[:, Index.INDEX_DY]
     s_jk = np.array([x, y, x + obj[:, Index.INDEX_W], y + obj[:, Index.INDEX_H]]).T
 
-    det_q_x = det_q[:, Index.INDEX_X] - det_q[:, Index.INDEX_W]
-    det_q_y = det_q[:, Index.INDEX_Y] - det_q[:, Index.INDEX_H]
+    det_q_x = det_q[:, Index.INDEX_X] - det_q[:, Index.INDEX_W] / 2
+    det_q_y = det_q[:, Index.INDEX_Y] - det_q[:, Index.INDEX_H] / 2
     det_q_xyxy = np.array(
         [det_q_x, det_q_y, det_q_x + det_q[:, Index.INDEX_W], det_q_y + det_q[:, Index.INDEX_H]]
     ).T
 
     iou_score = iou_vec(s_jk, det_q_xyxy)
-    cost = np.empty_like(iou_score)
     mask = iou_score == 0.0
-    cost[mask] = SMOOTH
-    cost[~mask] = -np.log(iou_score[~mask])
+    iou_score[mask] = SMOOTH
+    cost = -np.log(iou_score)
     return cost
 
 
