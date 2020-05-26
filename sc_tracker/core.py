@@ -261,16 +261,13 @@ class Tracker:
             for j, object_index_j in enumerate(tracked_object_indexes):
                 if i == j:
                     continue
-                for idx_1, idx_2 in [[i, j], [j, i]]:
-                    object_1 = objects_from_detections[idx_1]
-                    object_2 = objects_from_detections[idx_2]
-                    object_index_1 = tracked_object_indexes[idx_1]
-                    object_index_2 = tracked_object_indexes[idx_2]
-                    sc = StructuralConstraint.create(object_1, object_2)
-                    tracker = self.__sc_trackers[object_index_1][object_index_2]
-                    tracker.update(sc)
-                    saved_sc = self.__structural_constraints[object_index_1][object_index_2]
-                    saved_sc.update_from_sc(tracker.state)
+                object_i = objects_from_detections[i]
+                object_j = objects_from_detections[j]
+                sc = StructuralConstraint.create(object_i, object_j)
+                tracker = self.__sc_trackers[object_index_i][object_index_j]
+                tracker.update(sc)
+                saved_sc = self.__structural_constraints[object_index_i][object_index_j]
+                saved_sc.update_from_sc(tracker.state)
 
         # update one or both missing
         mask = np.ix_(tracked_object_indexes, tracked_object_indexes)
