@@ -2,6 +2,7 @@
 
 This module contain main tracking system consists of SCEA, SCOR, and state management.
 """
+import copy
 from typing import List, Tuple
 
 import numpy as np
@@ -343,12 +344,12 @@ class Tracker:
             self.__structural_constraints, (0, n_new_objects), "constant", constant_values=None,
         )
         self.__structural_constraints[-n_new_objects:, :] = sc_new
-        self.__structural_constraints[:, -n_new_objects:] = np.transpose(sc_new)
+        self.__structural_constraints[:, -n_new_objects:] = np.transpose(copy.deepcopy(sc_new))
         self.__sc_trackers = np.pad(
             self.__sc_trackers, (0, n_new_objects), "constant", constant_values=None,
         )
         self.__sc_trackers[-n_new_objects:, :] = sc_tracker_new
-        self.__sc_trackers[:, -n_new_objects:] = np.transpose(sc_tracker_new)
+        self.__sc_trackers[:, -n_new_objects:] = np.transpose(copy.deepcopy(sc_tracker_new))
 
         self.__object_states = np.concatenate((self.__object_states, new_object_states))
         self.__object_trackers = np.concatenate((self.__object_trackers, new_object_trackers))
