@@ -34,10 +34,10 @@ class StructuralConstraintTracker:
         half_sc = 0.5 * DEV_SC
         self.kf.Q = np.array(
             [
-                [quart_sc, half_sc, 0, 0],
-                [quart_sc, half_sc, 0, 0],
-                [0, 0, half_sc, DEV_SC],
-                [0, 0, half_sc, DEV_SC],
+                [quart_sc, 0, half_sc, 0],
+                [0, quart_sc, 0, half_sc],
+                [half_sc, 0, DEV_SC, 0],
+                [0, half_sc, 0, DEV_SC],
             ]
         )
 

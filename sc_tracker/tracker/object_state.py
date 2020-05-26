@@ -43,10 +43,10 @@ class ObjectStateTracker:
         half_q = 0.5 * DEV_Q
         self.kf.Q = np.array(
             [
-                [quart_q, half_q, 0, 0, 0, 0],
-                [quart_q, half_q, 0, 0, 0, 0],
-                [0, 0, half_q, DEV_Q, 0, 0],
-                [0, 0, half_q, DEV_Q, 0, 0],
+                [quart_q, 0, half_q, 0, 0, 0],
+                [0, quart_q, 0, half_q, 0, 0],
+                [half_q, 0, DEV_Q, 0, 0, 0],
+                [0, half_q, 0, DEV_Q, 0, 0],
                 [0, 0, 0, 0, DEV_S, 0],
                 [0, 0, 0, 0, 0, DEV_S],
             ]
