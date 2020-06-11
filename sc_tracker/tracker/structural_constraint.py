@@ -54,6 +54,8 @@ class StructuralConstraintTracker:
         self.__set_state()
         self.history: List[StructuralConstraint] = [self.state]
 
+        self.__is_tracked = True
+
     def update(self, sc: Optional[StructuralConstraint] = None):
         if sc:
             self.__update_well_tracked(sc)
@@ -66,11 +68,18 @@ class StructuralConstraintTracker:
     def __update_well_tracked(self, sc: StructuralConstraint):
         measurement = np.array([sc.delta_x, sc.delta_y])
         self.kf.update(measurement)
-        self.kf.predict()
+        self.__is_tracked = True
 
     def __update_missing(self):
-        column_vector_x = self.kf.x.reshape((-1, 1))
-        self.kf.x = np.dot(self.kf.F, column_vector_x)
+        self.__is_tracked = False
+
+    def predict(self):
+        if self.__is_tracked:
+            self.kf.predict()
+        else:
+            column_vector_x = self.kf.x.reshape((-1, 1))
+            self.kf.x = np.dot(self.kf.F, column_vector_x)
+        self.__set_state()
 
     def __set_state(self):
         kf_x = self.kf.x.squeeze()

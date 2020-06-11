@@ -83,12 +83,15 @@ class ObjectStateTracker:
     def __update_state(self, detection: DetectionState):
         measurement = np.array([detection.x, detection.y, detection.width, detection.height])
         self.kf.update(measurement)
-        self.kf.predict()
 
     def __update_histogram(self, detection: DetectionState):
         old_value = (1 - self.hist_alpha) * self.histogram
         current_value = self.hist_alpha * detection.histogram
         self.histogram = old_value + current_value
+
+    def predict(self):
+        self.kf.predict()
+        self.__set_state()
 
     def __set_state(self):
         kf_x = self.kf.x

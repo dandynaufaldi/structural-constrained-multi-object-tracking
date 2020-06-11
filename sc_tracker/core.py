@@ -88,6 +88,8 @@ class Tracker:
         self.__first = False
 
     def __update_routine(self, detections: List[DetectionState], current_frame_step: int):
+        self.__predict_object_trackers()
+        self.__predict_sc_trackers()
         if len(detections) == 0:
             self.__missing_indexes = np.concatenate(
                 (self.__missing_indexes, self.__well_tracked_indexes)
@@ -280,6 +282,19 @@ class Tracker:
             if tracker:
                 tracker.update()
                 sc.update_from_sc(tracker.state)
+
+    def __predict_object_trackers(self):
+        for (track, obj) in zip(self.__object_trackers, self.__object_states):
+            track.predict()
+            obj.update_from_object_state(track.state)
+
+    def __predict_sc_trackers(self):
+        for (track_row, sc_row) in zip(self.__sc_trackers, self.__structural_constraints):
+            for (track, sc) in zip(track_row, sc_row):
+                if track is None:
+                    continue
+                track.predict()
+                sc.update_from_sc(track.state)
 
     def __update_last_updates(self, current_frame_step: int):
         self.__last_updates[self.__well_tracked_indexes] = current_frame_step
