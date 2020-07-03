@@ -60,6 +60,7 @@ class DetectionState:
             graysacle = image.mean(axis=2)
             bins = np.arange(n_bins + 1) * (256 // n_bins)
             histogram, _ = np.histogram(graysacle, bins=bins)
+            histogram = histogram / histogram.sum()
         return DetectionState(
             x=x, y=y, width=width, height=height, frame_step=frame_step, histogram=histogram,
         )
