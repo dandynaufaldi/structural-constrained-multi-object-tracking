@@ -29,7 +29,7 @@ class DetectionState:
     width: float
     height: float
     frame_step: int
-    histogram: np.ndarray
+    histogram: np.ndarray = field(repr=False)
     internal_state: DetectionStateData = field(init=False)
 
     def __post_init__(self):
@@ -79,7 +79,7 @@ class ObjectState:
     width: float
     height: float
     frame_step: int
-    histogram: np.ndarray
+    histogram: np.ndarray = field(repr=False)
     v_x: float = 0.0
     v_y: float = 0.0
     internal_state: ObjectStateData = field(init=False)
